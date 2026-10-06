@@ -1,0 +1,27 @@
+.home {
+  padding-top: var(--space-6);
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--grid-gap);
+  margin-top: var(--grid-gap);
+}
+
+@media (min-width: 1024px) {
+  .tiles {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.showcase {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.showcaseHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}

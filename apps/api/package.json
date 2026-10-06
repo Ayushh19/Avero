@@ -1,0 +1,42 @@
+{
+  "name": "@avero/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --clear-screen=false src/index.ts",
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx src/db/migrate.ts",
+    "db:seed": "tsx src/db/seed.ts",
+    "db:reset": "rm -rf .data && pnpm db:setup",
+    "catalog:import": "tsx src/scripts/import-catalog.ts",
+    "db:setup": "tsx src/db/seed.ts && tsx src/scripts/import-catalog.ts && tsx src/scripts/seed-reviews.ts",
+    "db:seed-reviews": "tsx src/scripts/seed-reviews.ts"
+  },
+  "dependencies": {
+    "@avero/shared": "workspace:*",
+    "@electric-sql/pglite": "^0.5.8",
+    "@fastify/cookie": "^11.1.2",
+    "@fastify/cors": "^11.3.0",
+    "@fastify/rate-limit": "^11.2.0",
+    "@fastify/static": "^9.3.0",
+    "@node-rs/argon2": "^2.2.1",
+    "dotenv": "^18.0.5",
+    "drizzle-orm": "^0.45.3",
+    "fastify": "^5.12.5",
+    "nodemailer": "^10.0.15",
+    "uuidv7": "^1.2.1",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "@types/nodemailer": "*",
+    "drizzle-kit": "^0.31.11",
+    "pino-pretty": "^13.2.0",
+    "tsx": "^4.23.15",
+    "vitest": "^5.0.3"
+  }
+}

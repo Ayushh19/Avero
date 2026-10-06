@@ -1,0 +1,236 @@
+/* tabs */
+.tabList {
+  display: flex;
+  gap: var(--space-6);
+  border-bottom: var(--hairline);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tab {
+  position: relative;
+  padding: var(--space-3) 0;
+  border: none;
+  background: none;
+  font-size: var(--text-base);
+  font-weight: 500;
+  color: var(--color-ink-3);
+  white-space: nowrap;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.tab:hover {
+  color: var(--color-ink);
+}
+.tab[aria-selected='true'] {
+  color: var(--color-ink);
+}
+.tab[aria-selected='true']::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--color-ink);
+}
+.tabPanel {
+  padding-top: var(--space-6);
+}
+.tabPanel:focus-visible {
+  outline-offset: 4px;
+}
+
+/* accordion */
+.accordion {
+  border-bottom: var(--hairline);
+}
+.summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) 0;
+  cursor: pointer;
+  list-style: none;
+}
+.summary::-webkit-details-marker {
+  display: none;
+}
+.summaryTitle {
+  flex: 1;
+  font-weight: 600;
+  font-size: var(--text-base);
+}
+.chevron {
+  transition: transform var(--dur) var(--ease-out);
+}
+.accordion[open] .chevron {
+  transform: rotate(180deg);
+}
+.accordionBody {
+  padding-bottom: var(--space-5);
+}
+
+/* breadcrumbs */
+.crumbs ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-ink-3);
+}
+.crumbs li + li::before {
+  content: '/';
+  margin-right: var(--space-2);
+  color: var(--color-border-strong);
+}
+.crumbs a {
+  text-decoration: none;
+}
+.crumbs a:hover {
+  color: var(--color-ink);
+  text-decoration: underline;
+}
+.crumbs [aria-current] {
+  color: var(--color-ink);
+}
+
+/* stepper */
+.stepper {
+  display: flex;
+  align-items: flex-start;
+  counter-reset: step;
+}
+.step {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-ink-3);
+}
+.step + .step::before {
+  content: '';
+  position: absolute;
+  top: 11px;
+  right: 50%;
+  width: 100%;
+  height: 1px;
+  background: var(--color-border-strong);
+  z-index: 0;
+}
+.step-done + .step::before,
+.step-done + .step-current::before {
+  background: var(--color-ink);
+}
+.stepDot {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-bg);
+  color: var(--color-on-ink);
+}
+.step-done .stepDot {
+  background: var(--color-ink);
+  border-color: var(--color-ink);
+}
+.step-current .stepDot {
+  border: 6px solid var(--color-ink);
+}
+.step-current,
+.step-done {
+  color: var(--color-ink);
+}
+.step-current .stepLabel {
+  font-weight: 600;
+}
+
+/* order timeline: vertical on mobile, horizontal from md */
+.timeline {
+  display: flex;
+  flex-direction: column;
+}
+.tlStep {
+  position: relative;
+  display: flex;
+  gap: var(--space-4);
+  padding-bottom: var(--space-6);
+}
+.tlStep:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 11px;
+  top: 24px;
+  bottom: 0;
+  width: 2px;
+  background: var(--color-border);
+}
+.tl-done:not(:last-child)::before {
+  background: var(--color-success);
+}
+.tlDot {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--color-border-strong);
+  background: var(--color-surface);
+  color: var(--color-on-ink);
+}
+.tl-done .tlDot,
+.tl-current .tlDot {
+  background: var(--color-success);
+  border-color: var(--color-success);
+}
+.tl-current .tlDot {
+  box-shadow: 0 0 0 5px var(--color-success-bg);
+}
+.tlText {
+  display: flex;
+  flex-direction: column;
+}
+.tlLabel {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-ink-3);
+}
+.tl-done .tlLabel,
+.tl-current .tlLabel {
+  color: var(--color-ink);
+}
+.tl-current .tlLabel {
+  font-weight: 600;
+}
+.tlAt {
+  font-size: var(--text-xs);
+  color: var(--color-ink-3);
+}
+
+@media (min-width: 768px) {
+  .timeline {
+    flex-direction: row;
+  }
+  .tlStep {
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--space-3);
+    padding-bottom: 0;
+  }
+  .tlStep:not(:last-child)::before {
+    left: calc(50% + 12px);
+    right: calc(-50% + 12px);
+    top: 11px;
+    bottom: auto;
+    width: auto;
+    height: 2px;
+  }
+}

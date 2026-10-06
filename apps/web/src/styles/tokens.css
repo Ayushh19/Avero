@@ -1,0 +1,97 @@
+/* AVERO design tokens — see docs/DESIGN.md */
+:root {
+  /* colour */
+  --color-bg: #f6f4ef;
+  --color-surface: #ffffff;
+  --color-surface-muted: #efece5;
+  --color-sand: #e6e0d5;
+  --color-sage: #c5c9b6;
+  --color-sage-deep: #7d8570;
+  --color-mist: #c3cdd6;
+  --color-mauve: #cdbfba;
+  --color-ink: #1c1c1a;
+  --color-ink-2: #4a4843;
+  --color-ink-3: #6b6860;
+  --color-on-ink: #f6f4ef;
+  --color-border: #e4e0d8;
+  --color-border-strong: #cbc6bb;
+  --color-success: #3f6b4c;
+  --color-success-bg: #e3ece3;
+  --color-warning: #8a5a1f;
+  --color-warning-bg: #f3e8d6;
+  --color-danger: #a13f35;
+  --color-danger-bg: #f5e3e0;
+  --color-focus: #2f5d8a;
+  --color-scrim: rgb(28 28 26 / 0.36);
+
+  /* type */
+  --font-sans: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Manrope Variable', 'Inter Variable', system-ui, sans-serif;
+  --text-xs: 0.6875rem; /* 11 */
+  --text-sm: 0.8125rem; /* 13 */
+  --text-base: 0.9375rem; /* 15 */
+  --text-md: 1rem; /* 16 */
+  --text-lg: 1.125rem; /* 18 */
+  --text-xl: 1.5rem; /* 24 */
+  --text-hero: clamp(2.5rem, 5.2vw, 4.75rem);
+  --text-h1: clamp(1.75rem, 3vw, 2.5rem);
+  --text-h2: clamp(1.5rem, 2.4vw, 2.125rem);
+  --text-h3: 1.25rem;
+  --tracking-label: 0.14em;
+  --tracking-tight: -0.02em;
+  --tracking-hero: -0.035em;
+
+  /* space */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+  --section-gap: clamp(56px, 8vw, 112px);
+  --gutter: clamp(16px, 4vw, 48px);
+  --container: 1440px;
+  --reading: 680px;
+  --grid-gap: clamp(12px, 1.6vw, 24px);
+
+  /* shape */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --radius-xl: 28px;
+  /* circular top on 4:5 surfaces (40% of height = 50% of width); px radii would collapse the bottom corners */
+  --radius-arch: 50% 50% var(--radius-lg) var(--radius-lg) / 40% 40% var(--radius-lg) var(--radius-lg);
+  --radius-full: 999px;
+  --hairline: 1px solid var(--color-border);
+
+  /* elevation: overlays only */
+  --shadow-overlay: 0 12px 40px rgb(28 28 26 / 0.12), 0 2px 8px rgb(28 28 26 / 0.06);
+
+  /* motion */
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --dur-fast: 150ms;
+  --dur: 250ms;
+  --dur-slow: 400ms;
+
+  /* chrome */
+  --announcement-h: 32px;
+  --header-h: 64px;
+  --control-h: 48px;
+  --z-header: 40;
+  --z-overlay: 80;
+  --z-toast: 90;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0ms;
+    --dur: 0ms;
+    --dur-slow: 0ms;
+  }
+}

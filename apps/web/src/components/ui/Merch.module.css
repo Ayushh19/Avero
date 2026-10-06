@@ -1,0 +1,596 @@
+/* tones */
+.tone-muted {
+  background: var(--color-surface-muted);
+}
+.tone-sand {
+  background: var(--color-sand);
+}
+.tone-sage {
+  background: var(--color-sage);
+}
+.tone-mist {
+  background: var(--color-mist);
+}
+.tone-mauve {
+  background: var(--color-mauve);
+}
+.tone-white {
+  background: var(--color-surface);
+}
+
+/* media */
+.media {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+.radius-none {
+  border-radius: 0;
+}
+.radius-md {
+  border-radius: var(--radius-md);
+}
+.radius-lg {
+  border-radius: var(--radius-lg);
+}
+.radius-xl {
+  border-radius: var(--radius-xl);
+}
+.radius-arch {
+  border-radius: var(--radius-arch);
+}
+.img,
+.hoverImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.img {
+  opacity: 0;
+  transition: opacity var(--dur-slow) var(--ease-out);
+}
+.loaded {
+  opacity: 1;
+}
+.hoverImg {
+  opacity: 0;
+  transition: opacity var(--dur) var(--ease-out);
+}
+@media (hover: hover) {
+  .hasHover:hover .hoverImg {
+    opacity: 1;
+  }
+}
+.contain .img,
+.contain .hoverImg {
+  object-fit: contain;
+}
+/*
+ * Studio shots have a light, not-quite-white backdrop. Multiply lets it take the surface colour and
+ * a soft radial mask dissolves the backdrop's edges so no rectangle shows.
+ */
+.blend .img,
+.blend .hoverImg {
+  mix-blend-mode: multiply;
+  filter: brightness(1.07);
+  mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, #000 68%, transparent 100%);
+}
+.placeholder {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 62%;
+  height: auto;
+  fill: rgb(28 28 26 / 0.07);
+}
+.placeholder .sole {
+  fill: none;
+  stroke: rgb(28 28 26 / 0.1);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+
+/* product card */
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  transition: box-shadow var(--dur) var(--ease-out);
+}
+@media (hover: hover) {
+  .card:hover {
+    box-shadow: 0 0 0 1px var(--color-border);
+  }
+  .card:hover .cardMedia img {
+    transform: scale(1.03);
+  }
+}
+.cardLink {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: var(--radius-md);
+}
+.cardMedia {
+  position: relative;
+}
+.cardMedia img {
+  transition:
+    transform var(--dur-slow) var(--ease-out),
+    opacity var(--dur) var(--ease-out);
+}
+.cardBadge {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
+}
+.wish {
+  position: absolute;
+  z-index: 2;
+  top: var(--space-1);
+  right: var(--space-1);
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-ink);
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.wish:hover {
+  background: var(--color-surface-muted);
+}
+.wishOn svg {
+  fill: var(--color-ink);
+}
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-1) var(--space-1);
+  flex: 1;
+}
+.cardName {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1.35;
+}
+.cardSwatches {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: var(--space-1);
+}
+.cardSwatch {
+  display: block;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-full);
+  border: 1px solid rgb(28 28 26 / 0.15);
+}
+.cardSwatch:hover {
+  box-shadow: 0 0 0 2px var(--color-surface), 0 0 0 3px var(--color-ink);
+}
+.cardFoot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: auto;
+  padding-top: var(--space-2);
+}
+
+/* grid */
+.grid {
+  display: grid;
+  gap: var(--grid-gap);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@media (min-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1280px) {
+  .grid-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* collection tile */
+.tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  aspect-ratio: 4 / 5;
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  color: var(--color-ink);
+  text-decoration: none;
+}
+.tileArch {
+  border-radius: var(--radius-arch);
+}
+.tileMedia {
+  position: absolute;
+  inset: 0;
+}
+.tileMedia img {
+  width: 100%;
+  height: 78%;
+  padding: 10% 6% 0;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+  filter: brightness(1.1);
+  mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, #000 62%, transparent 100%);
+  transition: transform var(--dur-slow) var(--ease-out);
+}
+.tileMedia .placeholder {
+  width: 78%;
+  fill: rgb(28 28 26 / 0.09);
+}
+@media (hover: hover) {
+  .tile:hover .tileMedia img {
+    transform: scale(1.03);
+  }
+}
+.tileText {
+  position: relative;
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.tileTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
+}
+.tileCta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--color-ink-2);
+}
+.tile:hover .tileCta {
+  color: var(--color-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* hero */
+.hero {
+  position: relative;
+  display: grid;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  background: var(--color-surface-muted);
+  min-height: clamp(520px, 72vh, 760px);
+}
+.heroMedia {
+  position: absolute;
+  inset: 0;
+  overflow: hidden; /* the slow zoom never spills past the frame */
+}
+.heroImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transform: scale(1.06);
+  /* Outgoing: fade away; the zoom resets once it's invisible. */
+  transition:
+    opacity 1000ms var(--ease-out),
+    transform 0s linear 1000ms;
+}
+.heroImgActive {
+  opacity: 1;
+  transform: scale(1);
+  /* Incoming: fade in while drifting from 106% to 100% across the slide's time on screen. */
+  transition:
+    opacity 1000ms var(--ease-out),
+    transform calc(var(--hero-interval, 4500ms) + 1000ms) cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+@media (min-width: 768px) {
+  .heroMedia {
+    left: 44%;
+    margin: var(--space-4);
+    border-radius: calc(var(--radius-xl) - 8px);
+    overflow: hidden;
+  }
+  .heroContent {
+    max-width: 44%;
+  }
+}
+.heroLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--color-ink-2);
+}
+.heroPlaceholder {
+  position: absolute;
+  inset: 0;
+  background: var(--color-surface-muted);
+}
+.heroPlaceholder .placeholder {
+  width: min(56%, 720px);
+  margin: auto 6% auto auto;
+  fill: rgb(28 28 26 / 0.08);
+}
+.heroContent {
+  position: relative;
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 720px;
+  padding: var(--space-12) clamp(24px, 5vw, 72px) var(--space-20);
+}
+.heroTitle {
+  max-width: 13ch;
+  font-size: clamp(2.5rem, 4.4vw, 4.25rem);
+  font-weight: 500;
+  line-height: 1.04;
+  letter-spacing: var(--tracking-hero);
+}
+.heroBody {
+  font-size: var(--text-lg);
+  color: var(--color-ink-2);
+}
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+.heroNav {
+  position: absolute;
+  left: clamp(24px, 5vw, 72px);
+  right: calc(56% + var(--space-4));
+  bottom: var(--space-6);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.heroIndex {
+  display: flex;
+  gap: var(--space-4);
+}
+.heroIndex button {
+  border: none;
+  background: none;
+  padding: var(--space-2) 0;
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-3);
+  border-bottom: 1px solid transparent;
+}
+.heroIndex button[aria-current='true'] {
+  color: var(--color-ink);
+  border-bottom-color: var(--color-ink);
+}
+/* Autoplay: the active underline becomes a track that fills over the slide's interval. */
+.heroIndex button {
+  position: relative;
+}
+.heroIndexPlaying button[aria-current='true'] {
+  border-bottom-color: var(--color-border-strong);
+}
+.heroProgress {
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  height: 1px;
+  width: 100%;
+  background: var(--color-ink);
+  transform-origin: left;
+  animation: heroProgress var(--hero-interval, 4500ms) linear forwards;
+}
+@keyframes heroProgress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.heroText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+/* Text rises in with a short stagger each time the slide changes. */
+.heroRise {
+  animation: heroRise 700ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.heroRise:nth-child(2) {
+  animation-delay: 80ms;
+}
+.heroRise:nth-child(3) {
+  animation-delay: 160ms;
+}
+@keyframes heroRise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .heroRise {
+    animation: none;
+  }
+  .heroImg,
+  .heroImgActive {
+    transform: none;
+    transition: opacity var(--dur) linear;
+  }
+}
+.heroArrow {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  border: none;
+  background: var(--color-surface);
+  color: var(--color-ink);
+}
+@media (max-width: 767px) {
+  .heroNav {
+    right: clamp(24px, 5vw, 72px);
+  }
+  .hero {
+    min-height: auto;
+    grid-template-rows: auto auto;
+  }
+  .heroMedia {
+    position: relative;
+    aspect-ratio: 4 / 5;
+    order: -1;
+  }
+  .heroPlaceholder .placeholder {
+    margin: auto;
+    width: 80%;
+  }
+  .heroContent {
+    padding: var(--space-6) var(--space-5) calc(var(--space-20) + var(--space-2));
+  }
+  .heroActions > * {
+    flex: 1;
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* editorial */
+.editorial {
+  display: grid;
+  gap: var(--space-8);
+  align-items: end;
+}
+@media (min-width: 1024px) {
+  .editorial {
+    grid-template-columns: 5fr 6fr;
+    gap: var(--space-16);
+  }
+  .editorialReverse > :first-child {
+    order: 2;
+  }
+}
+.editorialText {
+  display: grid;
+  gap: var(--space-5);
+  align-content: end;
+}
+.editorialHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-6);
+}
+.editorialTitle {
+  font-size: clamp(2rem, 3.6vw, 3.25rem);
+  font-weight: 500;
+  letter-spacing: var(--tracking-hero);
+  line-height: 1.08;
+  max-width: 14ch;
+}
+.editorialBody {
+  max-width: 42ch;
+  color: var(--color-ink-2);
+  font-size: var(--text-md);
+}
+.editorialSecondary {
+  max-width: 320px;
+  margin-top: var(--space-6);
+}
+@media (max-width: 1023px) {
+  .editorialSecondary {
+    display: none;
+  }
+}
+
+/* trust row */
+.trust {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-5) 0;
+  border-block: var(--hairline);
+}
+@media (min-width: 640px) {
+  .trust {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+.trust li {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+.trust li > span {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--text-sm);
+}
+.trust strong {
+  font-weight: 600;
+}
+
+/* rail */
+.rail {
+  display: grid;
+  gap: var(--space-6);
+}
+.railHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+.railList {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(200px, calc((100% - 3 * var(--grid-gap)) / 4));
+  gap: var(--grid-gap);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+  padding-bottom: var(--space-2);
+}
+.railList > li {
+  scroll-snap-align: start;
+}
+@media (max-width: 767px) {
+  .railList {
+    grid-auto-columns: 62%;
+  }
+}

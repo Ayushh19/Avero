@@ -1,0 +1,131 @@
+.layout {
+  display: grid;
+  gap: var(--space-16);
+  align-items: start;
+  padding-block: clamp(32px, 6vw, 80px);
+}
+
+@media (min-width: 1024px) {
+  .layout {
+    grid-template-columns: minmax(0, 440px) minmax(0, 1fr);
+    justify-content: space-between;
+  }
+}
+
+.formCol {
+  padding-top: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  width: 100%;
+  max-width: 440px;
+  margin-inline: auto;
+}
+
+@media (min-width: 1024px) {
+  .formCol {
+    margin-inline: 0;
+  }
+}
+
+.head {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.intro {
+  color: var(--color-ink-2);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.form button[type='submit'] {
+  margin-top: var(--space-2);
+}
+
+.smallLink {
+  font-size: var(--text-sm);
+  color: var(--color-ink-2);
+}
+
+.alt {
+  font-size: var(--text-sm);
+  color: var(--color-ink-2);
+}
+
+.alt a {
+  color: var(--color-ink);
+  font-weight: 500;
+}
+
+.google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  min-height: 52px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-weight: 500;
+  text-decoration: none;
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+
+.google:hover {
+  border-color: var(--color-ink);
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--color-ink-3);
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--color-border);
+}
+
+.visual {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .visual {
+    display: grid;
+    gap: var(--space-4);
+    max-width: 520px;
+    justify-self: end;
+    width: 100%;
+  }
+}
+
+.visualCaption {
+  max-width: 44ch;
+  font-size: var(--text-sm);
+  color: var(--color-ink-2);
+}
+
+.status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  max-width: 520px;
+  padding-block: var(--space-24);
+  text-align: center;
+}
+
+.successIcon {
+  color: var(--color-success);
+}

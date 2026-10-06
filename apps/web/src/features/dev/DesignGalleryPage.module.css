@@ -1,0 +1,132 @@
+.page {
+  padding-block: var(--space-12);
+}
+
+.intro {
+  display: grid;
+  gap: var(--space-2);
+  margin-bottom: var(--space-12);
+}
+
+.section {
+  display: grid;
+  gap: var(--space-6);
+  padding-block: var(--space-10);
+  border-top: var(--hairline);
+}
+
+.sectionTitle {
+  font-size: var(--text-h3);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.stackSm {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.between {
+  display: flex;
+  justify-content: space-between;
+}
+
+.palette {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--space-4);
+}
+
+.palette li {
+  display: grid;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+
+.palette span {
+  height: 64px;
+  border-radius: var(--radius-md);
+  border: var(--hairline);
+}
+
+.type {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.hero {
+  font-family: var(--font-display);
+  font-size: var(--text-hero);
+  font-weight: 500;
+  letter-spacing: var(--tracking-hero);
+  line-height: 1.04;
+  max-width: 14ch;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--space-6);
+  align-items: start;
+}
+
+.radioStack {
+  display: grid;
+  gap: var(--space-3);
+  max-width: 520px;
+}
+
+.selection {
+  display: grid;
+  gap: var(--space-6);
+  max-width: 520px;
+}
+
+.mediaRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--grid-gap);
+}
+
+.states {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--grid-gap);
+}
+
+.panel {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+}
+
+.table {
+  width: 100%;
+  margin-top: var(--space-4);
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.table th,
+.table td {
+  padding: var(--space-3) var(--space-2);
+  border-bottom: var(--hairline);
+  text-align: left;
+}
+
+.table th {
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.bagLine {
+  display: grid;
+  grid-template-columns: 88px 1fr auto;
+  gap: var(--space-4);
+  align-items: start;
+}

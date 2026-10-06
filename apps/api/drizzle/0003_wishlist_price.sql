@@ -1,0 +1,1 @@
+ALTER TABLE "wishlist_items" ADD COLUMN "added_price_paise" integer;

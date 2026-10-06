@@ -1,0 +1,263 @@
+.gallery {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+}
+
+@media (min-width: 1024px) {
+  .gallery {
+    grid-template-columns: 76px minmax(0, 1fr);
+    gap: var(--space-4);
+    align-items: start;
+  }
+}
+
+.empty {
+  aspect-ratio: 1;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-muted);
+}
+
+.thumbs {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .thumbs {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    max-height: 640px;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+}
+
+.thumb {
+  display: block;
+  width: 76px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  overflow: hidden;
+  opacity: 0.7;
+  transition:
+    opacity var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+}
+
+.thumb img {
+  aspect-ratio: 1;
+  object-fit: cover;
+  width: 100%;
+}
+
+.thumb:hover,
+.thumbOn {
+  opacity: 1;
+}
+
+.thumbOn {
+  border-color: var(--color-ink);
+}
+
+.stage {
+  position: relative;
+}
+
+.badge {
+  position: absolute;
+  z-index: 2;
+  top: var(--space-4);
+  left: var(--space-4);
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: var(--color-surface);
+  border: var(--hairline);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.main {
+  display: none;
+  position: relative;
+  width: 100%;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  overflow: hidden;
+  cursor: zoom-in;
+}
+
+.main img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  animation: fade var(--dur) var(--ease-out);
+}
+
+.expand {
+  position: absolute;
+  right: var(--space-4);
+  bottom: var(--space-4);
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: var(--color-surface);
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+
+.main:hover .expand,
+.main:focus-visible .expand {
+  opacity: 1;
+}
+
+.strip {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.strip::-webkit-scrollbar {
+  display: none;
+}
+
+.slide {
+  flex: 0 0 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  scroll-snap-align: start;
+}
+
+.slide img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+
+.dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: var(--space-3);
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--color-border-strong);
+  transition: all var(--dur) var(--ease-out);
+}
+
+.dotOn {
+  width: 18px;
+  background: var(--color-ink);
+}
+
+.arrows {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .main {
+    display: block;
+  }
+  .strip,
+  .dots {
+    display: none;
+  }
+  .arrows {
+    position: absolute;
+    left: var(--space-4);
+    right: var(--space-4);
+    top: 50%;
+    display: flex;
+    justify-content: space-between;
+    pointer-events: none;
+    transform: translateY(-50%);
+  }
+  .arrows button {
+    pointer-events: auto;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: var(--radius-full);
+    background: var(--color-surface);
+    opacity: 0;
+    transition: opacity var(--dur-fast) var(--ease-out);
+  }
+  .stage:hover .arrows button,
+  .arrows button:focus-visible {
+    opacity: 1;
+  }
+}
+
+.viewer {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.viewerImage {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  cursor: zoom-in;
+}
+
+.viewerImage img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: contain;
+  transition: transform var(--dur) var(--ease-out);
+}
+
+.zoomed {
+  cursor: zoom-out;
+}
+
+.zoomed img {
+  transform: scale(2.2);
+  transition: none;
+}
+
+.viewerNav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-6);
+}
+
+.viewerNav button {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-full);
+  background: var(--color-surface);
+}
+
+@keyframes fade {
+  from {
+    opacity: 0.4;
+  }
+}

@@ -1,0 +1,171 @@
+.line {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: var(--space-4);
+  padding-block: var(--space-5);
+  border-bottom: var(--hairline);
+  transition: opacity var(--dur) var(--ease-out);
+}
+
+.line[aria-busy='true'] {
+  opacity: 0.6;
+}
+
+.compact {
+  grid-template-columns: 88px minmax(0, 1fr);
+  padding-block: var(--space-4);
+}
+
+.blocked .lineMedia {
+  opacity: 0.5;
+}
+
+.lineMedia {
+  display: block;
+}
+
+.lineBody {
+  display: grid;
+  gap: var(--space-3);
+  align-content: start;
+}
+
+.lineTop {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.lineName {
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.lineName:hover {
+  text-decoration: underline;
+}
+
+.linePrice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.lineActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.linkActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.linkActions button {
+  padding: var(--space-1) 0;
+  border: none;
+  background: none;
+  font-size: var(--text-sm);
+  color: var(--color-ink-2);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.linkActions button:hover:not(:disabled) {
+  color: var(--color-ink);
+}
+
+.issue {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+  font-size: var(--text-sm);
+}
+
+.issueBlocking {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+.issueAction {
+  border: none;
+  background: none;
+  padding: 0;
+  font-weight: 600;
+  color: inherit;
+  text-decoration: underline;
+}
+
+.progress {
+  display: grid;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+
+.bar {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-sand);
+  overflow: hidden;
+}
+
+.bar span {
+  display: block;
+  height: 100%;
+  background: var(--color-success);
+  transition: width var(--dur-slow) var(--ease-out);
+}
+
+.summary {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.rows {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.rows > div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.rows dt {
+  color: var(--color-ink-2);
+}
+
+.rows dd {
+  margin: 0;
+  font-weight: 500;
+}
+
+.savings dd,
+.savings dt {
+  color: var(--color-success);
+}
+
+.total {
+  padding-top: var(--space-3);
+  border-top: var(--hairline);
+}
+
+.total dt,
+.total dd {
+  color: var(--color-ink);
+  font-size: var(--text-lg);
+  font-weight: 600;
+}

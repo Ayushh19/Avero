@@ -1,0 +1,30 @@
+.page {
+  display: grid;
+  gap: var(--space-8);
+  padding-block: var(--space-8) var(--space-12);
+}
+
+.stack {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.note {
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+}
+
+.item {
+  display: grid;
+  gap: var(--space-2);
+  align-content: start;
+}
+
+.signal {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}

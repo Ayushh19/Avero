@@ -1,0 +1,88 @@
+.skeleton {
+  display: block;
+  width: 100%;
+  background: var(--color-sand);
+  position: relative;
+  overflow: hidden;
+}
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.45), transparent);
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after {
+    animation: none;
+  }
+}
+.r-sm {
+  border-radius: 6px;
+}
+.r-md {
+  border-radius: var(--radius-md);
+}
+.r-lg {
+  border-radius: var(--radius-lg);
+}
+.r-full {
+  border-radius: var(--radius-full);
+}
+
+.cardSkeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+}
+
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-3);
+  padding: var(--space-16) var(--space-6);
+  max-width: 460px;
+  margin-inline: auto;
+}
+.compact {
+  padding-block: var(--space-8);
+}
+.stateIcon {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  margin-bottom: var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--color-surface-muted);
+  color: var(--color-ink-2);
+}
+.stateIconError {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+.stateTitle {
+  font-size: var(--text-xl);
+}
+.stateBody {
+  color: var(--color-ink-2);
+}
+.stateAction {
+  margin-top: var(--space-3);
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+@keyframes shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
