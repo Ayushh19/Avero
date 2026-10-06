@@ -15,6 +15,7 @@ Full-stack e-commerce app for a fictional Indian footwear brand. User side only 
 - `pnpm install`
 - `pnpm dev` — API (:3000) + web (:5173)
 - `pnpm test` — all tests (Vitest)
+- `pnpm e2e` — Playwright journeys (desktop + Pixel 7) against a throwaway in-memory API (:4400) and Vite (:5400); first time: `pnpm --filter @avero/e2e exec playwright install chromium`
 - `pnpm typecheck`, `pnpm lint`
 - `pnpm --filter @avero/api db:generate` — generate migration after editing schema
 - `pnpm --filter @avero/api db:migrate` — apply migrations (also runs on API start)

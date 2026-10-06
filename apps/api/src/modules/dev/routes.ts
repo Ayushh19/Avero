@@ -1,13 +1,16 @@
-import { asc, desc, eq } from 'drizzle-orm';
+import { asc, desc, eq, sql } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import {
+  colorways,
   coupons,
   couponRedemptions,
   inventoryMovements,
   inventoryReservations,
   orderEvents,
   orders,
+  products,
+  returnRequests,
   paymentAttempts,
   paymentEvents,
   pointsLedger,
@@ -184,4 +187,68 @@ export async function devRoutes(app: FastifyInstance): Promise<void> {
     ctx.catalog.invalidate();
     return report;
   });
+
+  /* ---- read-only views for the simulation panel (/dev/simulate) ---- */
+
+  /** Clock, background job health and gateway knobs. */
+  app.get('/dev/state', async () => {
+    const [jobsRow] = (await ctx.db.execute(sql`
+      SELECT count(*) FILTER (WHERE status = 'pending')::int AS pending,
+             count(*) FILTER (WHERE status = 'pending' AND run_at <= ${ctx.clock.now()})::int AS due,
+             count(*) FILTER (WHERE status = 'failed')::int AS failed
+      FROM jobs`)).rows as { pending: number; due: number; failed: number }[];
+    const settings = await ctx.db.query.gatewaySimSettings.findFirst();
+    return {
+      now: ctx.clock.now().toISOString(),
+      offsetMs: ctx.clock.offsetMs(),
+      jobs: jobsRow,
+      refundFailuresRemaining: settings?.refundFailuresRemaining ?? 0,
+    };
+  });
+
+  /** Most recent orders (any customer), newest first. */
+  app.get('/dev/orders', async () => ({
+    orders: await ctx.db
+      .select({
+        orderNumber: orders.orderNumber,
+        status: orders.status,
+        kind: orders.kind,
+        email: orders.email,
+        totalPaise: orders.totalPaise,
+        placedAt: orders.placedAt,
+        returnWindowEndsAt: orders.returnWindowEndsAt,
+      })
+      .from(orders)
+      .where(sql`${orders.email} NOT LIKE '%@reviewers.avero.local'`)
+      .orderBy(desc(orders.placedAt))
+      .limit(30),
+  }));
+
+  app.get('/dev/returns', async () => ({
+    returns: await ctx.db
+      .select({ rmaNumber: returnRequests.rmaNumber, status: returnRequests.status, kind: returnRequests.kind, orderNumber: orders.orderNumber, createdAt: returnRequests.createdAt })
+      .from(returnRequests)
+      .innerJoin(orders, eq(orders.id, returnRequests.orderId))
+      .orderBy(desc(returnRequests.createdAt))
+      .limit(30),
+  }));
+
+  /** Every size with its stock and price, for quick edits. */
+  app.get('/dev/skus', async () => ({
+    skus: await ctx.db
+      .select({
+        skuCode: skus.skuCode,
+        sizeLabel: skus.sizeLabel,
+        pricePaise: skus.pricePaise,
+        onHand: skus.onHand,
+        reserved: skus.reserved,
+        status: skus.status,
+        productName: products.name,
+        colorName: colorways.name,
+      })
+      .from(skus)
+      .innerJoin(colorways, eq(colorways.id, skus.colorwayId))
+      .innerJoin(products, eq(products.id, colorways.productId))
+      .orderBy(asc(products.name), asc(colorways.name), asc(skus.sizeSort)),
+  }));
 }

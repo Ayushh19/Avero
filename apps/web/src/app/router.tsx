@@ -91,6 +91,11 @@ export const router = createBrowserRouter([
       },
       { path: '/help', element: <HelpIndexPage /> },
       { path: '/help/:topic', element: <HelpTopicPage /> },
+      // Shown only when the API has SIMULATION_TOOLS=true (the page checks /config).
+      {
+        path: '/dev/simulate',
+        lazy: async () => ({ Component: (await import('../features/dev/SimulationPage')).SimulationPage }),
+      },
       ...(import.meta.env.DEV
         ? [
             {

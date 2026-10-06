@@ -190,6 +190,7 @@ const FOOTER_LINKS = [
 ];
 
 export function Footer() {
+  const { data: config } = usePublicConfig();
   return (
     <footer className={styles.footer}>
       <div className={`container ${styles.footerInner}`}>
@@ -214,7 +215,15 @@ export function Footer() {
       </div>
       <div className={`container ${styles.legal}`}>
         <p>© {new Date().getFullYear()} AVERO. A fictional brand — no real purchases are made.</p>
-        <p>Prices include GST.</p>
+        <p>
+          Prices include GST.
+          {config?.simulationTools ? (
+            <>
+              {' · '}
+              <Link to="/dev/simulate">Simulation panel</Link>
+            </>
+          ) : null}
+        </p>
       </div>
     </footer>
   );

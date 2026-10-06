@@ -14,7 +14,8 @@
     "db:reset": "rm -rf .data && pnpm db:setup",
     "catalog:import": "tsx src/scripts/import-catalog.ts",
     "db:setup": "tsx src/db/seed.ts && tsx src/scripts/import-catalog.ts && tsx src/scripts/seed-reviews.ts",
-    "db:seed-reviews": "tsx src/scripts/seed-reviews.ts"
+    "db:seed-reviews": "tsx src/scripts/seed-reviews.ts",
+    "e2e:server": "tsx src/scripts/e2e-server.ts"
   },
   "dependencies": {
     "@avero/shared": "workspace:*",

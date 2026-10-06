@@ -423,6 +423,19 @@ describe('invoice', () => {
   });
 });
 
+describe('simulation panel endpoints', () => {
+  it('report clock/job state and list orders, returns and sizes', async () => {
+    const c = client(app);
+    const o = await deliver(c, (await confirmed(c, [{ skuId: (await w.sku(5)).id, qty: 1 }])).orderNumber);
+    await requestReturn(c, { orderNumber: o.orderNumber, kind: 'return', items: [{ orderItemId: o.items[0].id, reason: 'other' }] });
+    const state = (await c.get(api('/dev/state'))).json();
+    expect(state).toMatchObject({ now: expect.any(String), offsetMs: expect.any(Number), jobs: { pending: expect.any(Number), due: expect.any(Number), failed: 0 } });
+    expect((await c.get(api('/dev/orders'))).json().orders.map((x: { orderNumber: string }) => x.orderNumber)).toContain(o.orderNumber);
+    expect((await c.get(api('/dev/returns'))).json().returns[0]).toMatchObject({ orderNumber: o.orderNumber, status: 'PICKUP_SCHEDULED' });
+    expect((await c.get(api('/dev/skus'))).json().skus[0]).toMatchObject({ skuCode: expect.any(String), onHand: expect.any(Number), productName: expect.any(String) });
+  });
+});
+
 describe('invariants', () => {
   it('no background job failed and refunds never exceed payments', async () => {
     await w.elapse(DAY);
