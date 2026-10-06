@@ -204,7 +204,9 @@ function OrdersTab() {
                 <th>Placed</th>
                 <th className={styles.num}>Total</th>
                 <th>Status</th>
-                <th />
+                <th>
+                  <span className="visually-hidden">Actions</span>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -246,7 +248,9 @@ function OrdersTab() {
                 <th>Order</th>
                 <th>Requested</th>
                 <th>Status</th>
-                <th />
+                <th>
+                  <span className="visually-hidden">Actions</span>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -375,7 +379,9 @@ function CatalogueTab() {
                 <th className={styles.num}>On hand</th>
                 <th className={styles.num}>Reserved</th>
                 <th>Status</th>
-                <th />
+                <th>
+                  <span className="visually-hidden">Actions</span>
+                </th>
               </tr>
             </thead>
             <tbody>

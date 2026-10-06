@@ -57,6 +57,13 @@
       "when": 1791296129940,
       "tag": "0007_retire_freeship",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791298294265,
+      "tag": "0008_image_medium_size",
+      "breakpoints": true
     }
   ]
 }

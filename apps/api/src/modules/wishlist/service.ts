@@ -47,7 +47,7 @@ export async function cardsFor(ctx: AppContext, colorwayIds: string[]): Promise<
         colorName: r.colorway.name,
         colorFamily: r.colorway.colorFamily,
         hex: r.colorway.hex ?? '#B8B2A7',
-        image: img ? { url: img.url, thumbUrl: img.thumbUrl, alt: img.alt } : null,
+        image: img ? { url: img.url, thumbUrl: img.thumbUrl, mediumUrl: img.mediumUrl, alt: img.alt } : null,
         hoverImage: null,
         pricePaise: Number(r.price ?? 0),
         mrpPaise: Number(r.mrp ?? 0),

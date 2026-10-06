@@ -51,7 +51,8 @@ interface StateProps {
   compact?: boolean;
 }
 
-export function EmptyState({ icon: Icon, title, body, action, compact }: StateProps) {
+export function EmptyState({ icon: Icon, title, body, action, compact, headingLevel = 2 }: StateProps & { headingLevel?: 1 | 2 }) {
+  const Heading = headingLevel === 1 ? 'h1' : 'h2';
   return (
     <div className={cx(styles.state, compact && styles.compact)}>
       {Icon ? (
@@ -59,7 +60,7 @@ export function EmptyState({ icon: Icon, title, body, action, compact }: StatePr
           <Icon size={26} strokeWidth={1.4} aria-hidden />
         </span>
       ) : null}
-      <h2 className={styles.stateTitle}>{title}</h2>
+      <Heading className={styles.stateTitle}>{title}</Heading>
       {body ? <p className={styles.stateBody}>{body}</p> : null}
       {action ? <div className={styles.stateAction}>{action}</div> : null}
     </div>

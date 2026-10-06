@@ -33,7 +33,7 @@ Product (style)            "AVERO Drift Runner"
 | `categories` | parent_id?, slug, name, path (e.g. `men/running`), position | path unique |
 | `products` | external_id (unique), slug (unique), name, description, category_id, gender, attributes jsonb, size_chart_id?, gst_rate_bps, status, rating_avg, rating_count, fit_* counts, search_vector | aggregates maintained on review write |
 | `colorways` | product_id, external_id?, slug (unique per product), name, color_family, hex?, status, position | |
-| `colorway_images` | colorway_id, url, alt, position, width?, height? | |
+| `colorway_images` | colorway_id, url (1024px original), thumb_url (400px), medium_url (640px), alt, position, width?, height? | Variants made with sharp (`lib/media.ts`) |
 | `skus` | colorway_id, sku_code (unique), size_label, size_sort, price_paise, mrp_paise, status, on_hand, reserved, low_stock_threshold, max_per_order | `CHECK on_hand >= 0`, `CHECK reserved >= 0`, `CHECK on_hand >= reserved`, `CHECK price_paise <= mrp_paise` |
 | `size_charts` | name, rows jsonb (UK/IND, US, EU, cm), guidance | |
 | `collections` | slug, name, description, kind (`manual`/`rule`), rules jsonb, hero_image?, position, starts_at?, ends_at?, active | |

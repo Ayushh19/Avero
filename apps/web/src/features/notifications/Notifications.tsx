@@ -146,7 +146,7 @@ export function NotificationsPage() {
           </Button>
         ) : null}
       </header>
-      <section className={styles.panel} aria-label="Notifications">
+      <section className={styles.panel} aria-label="Notification list">
         {pages.isPending ? (
           <LoadingRegion label="Loading notifications">
             <Skeleton height={64} radius="md" />

@@ -1,7 +1,7 @@
 import { formatINR, type ColorwayDto, type ListingItemDto, type ProductDetailDto, type SkuDto } from '@avero/shared';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Bell, BellRing, MapPin, RefreshCcw, ShieldCheck, Truck } from 'lucide-react';
-import { useRef, useState, type FormEvent } from 'react';
+import { lazy, Suspense, useRef, useState, type FormEvent } from 'react';
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router';
 import { Button, ButtonLink } from '../../components/ui/Button';
 import { PriceTag, Rating, SizeSelector, StockIndicator, type SizeOption } from '../../components/ui/Commerce';
@@ -18,9 +18,11 @@ import { savedPincode } from '../../lib/storage';
 import { useMe, usePublicConfig } from '../auth/hooks';
 import { useAddToBag } from '../bag/hooks';
 import { RecentlyViewedRail, useRecordView } from '../recent/recentlyViewed';
-import { ProductReviews } from '../reviews/ProductReviews';
 import { WishlistCardButton, WishlistIconButton } from '../wishlist/WishlistButton';
 import { Gallery } from './Gallery';
+
+// Reviews sit in a tab below the fold; their code (and the forms it uses) loads after first paint.
+const ProductReviews = lazy(() => import('../reviews/ProductReviews').then((m) => ({ default: m.ProductReviews })));
 import styles from './ProductPage.module.css';
 
 const ACTIVITY: Record<string, string> = { running: 'Running', training: 'Training', sneakers: 'Sneakers', casual: 'Casual', lifestyle: 'Lifestyle' };
@@ -169,21 +171,21 @@ function ProductView({ product: p, colorway }: { product: ProductDetailDto; colo
             <p className={styles.label}>
               Colour: <span>{colorway.name}</span>
             </p>
-            <div className={styles.swatches} role="list" aria-label="Colours">
+            <ul className={styles.swatches} role="list" aria-label="Colours">
               {p.colorways.map((c) => (
-                <Link
-                  key={c.id}
-                  role="listitem"
-                  to={`${c.href}${selected ? `?size=${encodeURIComponent(selected.sizeLabel)}` : ''}`}
-                  replace
-                  className={cx(styles.swatch, c.id === colorway.id && styles.swatchOn)}
-                  style={{ background: c.hex }}
-                  aria-label={`${c.name}${c.id === colorway.id ? ' (selected)' : ''}`}
-                  aria-current={c.id === colorway.id}
-                  title={c.name}
-                />
+                <li key={c.id}>
+                  <Link
+                    to={`${c.href}${selected ? `?size=${encodeURIComponent(selected.sizeLabel)}` : ''}`}
+                    replace
+                    className={cx(styles.swatch, c.id === colorway.id && styles.swatchOn)}
+                    style={{ background: c.hex }}
+                    aria-label={`${c.name}${c.id === colorway.id ? ' (selected)' : ''}`}
+                    aria-current={c.id === colorway.id}
+                    title={c.name}
+                  />
+                </li>
               ))}
-            </div>
+            </ul>
           </div>
 
           <div className={styles.block}>
@@ -296,7 +298,11 @@ function ProductView({ product: p, colorway }: { product: ProductDetailDto; colo
             {
               id: 'reviews',
               label: `Reviews${p.rating.count ? ` (${p.rating.count})` : ''}`,
-              content: <ProductReviews slug={p.slug} />,
+              content: (
+                <Suspense fallback={<Skeleton height={240} />}>
+                  <ProductReviews slug={p.slug} />
+                </Suspense>
+              ),
             },
             {
               id: 'shipping',

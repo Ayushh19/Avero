@@ -1,4 +1,7 @@
 import { z } from 'zod';
+import { SORT_OPTIONS, type SortOption } from '../catalog/sort';
+
+export { SORT_LABELS, SORT_OPTIONS, type SortOption } from '../catalog/sort';
 
 const csv = z
   .union([z.string(), z.array(z.string())])
@@ -13,19 +16,6 @@ const flag = z
   .union([z.boolean(), z.enum(['true', 'false', '1', '0'])])
   .optional()
   .transform((v) => v === true || v === 'true' || v === '1');
-
-export const SORT_OPTIONS = ['featured', 'newest', 'price_asc', 'price_desc', 'bestselling', 'top_rated', 'relevance'] as const;
-export type SortOption = (typeof SORT_OPTIONS)[number];
-
-export const SORT_LABELS: Record<SortOption, string> = {
-  featured: 'Featured',
-  relevance: 'Most relevant',
-  newest: 'Newest',
-  price_asc: 'Price: low to high',
-  price_desc: 'Price: high to low',
-  bestselling: 'Best selling',
-  top_rated: 'Top rated',
-};
 
 /** PLP / search query. Prices are in whole rupees (what shoppers type), not paise. */
 export const listingQuerySchema = z.object({
@@ -51,8 +41,12 @@ export type ListingQueryInput = z.input<typeof listingQuerySchema>;
 export type ListingQuery = z.output<typeof listingQuerySchema>;
 
 export interface ImageDto {
+  /** Original (1024px). */
   url: string;
+  /** 400px. */
   thumbUrl: string | null;
+  /** 640px; null until the variant has been made. */
+  mediumUrl: string | null;
   alt: string;
   title?: string | null;
 }

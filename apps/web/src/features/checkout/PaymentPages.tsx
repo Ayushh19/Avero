@@ -177,7 +177,7 @@ function GatewayForm({ attemptId, charge }: { attemptId: string; charge: Gateway
         <header className={styles.gatewayHead}>
           <div>
             <p className="eyebrow">AVERO Pay</p>
-            <p className={styles.merchant}>Paying {charge.merchant}</p>
+            <h1 className={styles.merchant}>Paying {charge.merchant}</h1>
           </div>
           <Badge tone="warning">Test mode</Badge>
         </header>

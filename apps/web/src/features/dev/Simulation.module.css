@@ -1,5 +1,6 @@
 .page {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-6);
   padding-block: var(--space-8) var(--space-16);
 }
@@ -51,22 +52,26 @@
 
 .stack {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-4);
 }
 
 .grid {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-4);
 }
 
 @media (min-width: 768px) {
   .grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     align-items: start;
   }
 }
 
 .panel {
+  /* Positioned so visually hidden (absolute) text in wide tables scrolls with them. */
+  position: relative;
   display: grid;
   gap: var(--space-4);
   padding: var(--space-6);

@@ -1,9 +1,12 @@
 import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { parseSearchQuery, searchParamsFor } from '@avero/shared';
 import { eq } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { colorways, inventoryMovements, skus } from '../src/db/schema';
+import sharp from 'sharp';
+import { colorwayImages, colorways, inventoryMovements, skus } from '../src/db/schema';
+import { backfillImageVariants } from '../src/lib/media';
 import { estimateDelivery, lookupPincode } from '../src/modules/delivery/pincode';
 import { convertPrice, normalizeItem } from '../src/modules/catalog/importer/normalize';
 import { importCatalog } from '../src/modules/catalog/importer/run';
@@ -139,6 +142,36 @@ describe('catalog import + API', () => {
     // restore
     await importCatalog(app.ctx.db, app.ctx.clock, { items: fixture, mediaDir: testEnv.MEDIA_DIR, download: fakeDownload });
     app.ctx.catalog.invalidate();
+  });
+
+  it('makes 400/640px variants of each original and backfills images imported without them', async () => {
+    // The fixture download returns bytes sharp can't read, so the import keeps originals only.
+    const [img] = await app.ctx.db.select().from(colorwayImages).where(eq(colorwayImages.position, 0)).limit(1);
+    expect(img).toMatchObject({ mediumUrl: null, thumbUrl: expect.stringMatching(/-thumb\.webp$/), width: 1024, height: 1024 });
+
+    const original = join(testEnv.MEDIA_DIR, img!.url.slice('/media/'.length));
+    await sharp({ create: { width: 1200, height: 900, channels: 3, background: '#d9d4c7' } }).webp().toFile(original);
+    expect(await backfillImageVariants(app.ctx, app.log)).toBe(1);
+
+    const after = await app.ctx.db.query.colorwayImages.findFirst({ where: eq(colorwayImages.id, img!.id) });
+    expect(after).toMatchObject({ thumbUrl: img!.url.replace(/\.webp$/, '-400.webp'), mediumUrl: img!.url.replace(/\.webp$/, '-640.webp'), width: 1200, height: 900 });
+    for (const [w, h] of [[400, 300], [640, 480]]) {
+      const variant = await sharp(original.replace(/\.webp$/, `-${w}.webp`)).metadata();
+      expect([variant.width, variant.height]).toEqual([w, h]);
+    }
+    // Unreadable files are left for next time; a second run does nothing new.
+    expect(await backfillImageVariants(app.ctx, app.log)).toBe(0);
+
+    const listing = (await client(app).get(api('/products?limit=48'))).json();
+    const images = listing.items.map((i: { image: { url: string; mediumUrl: string | null } }) => i.image);
+    expect(images.find((i: { url: string }) => i.url === img!.url)?.mediumUrl).toBe(after!.mediumUrl);
+  });
+
+  it('lets browsers briefly cache public catalogue reads but never product detail (live stock)', async () => {
+    const c = client(app);
+    expect((await c.get(api('/products'))).headers['cache-control']).toMatch(/^public, max-age=30/);
+    expect((await c.get(api('/pincodes/560038'))).headers['cache-control']).toBe('public, max-age=86400');
+    expect((await c.get(api('/products/mens-gray-low-top-sneakers'))).headers['cache-control']).toBe('no-store');
   });
 
   it('filters by category and computes facets excluding their own dimension', async () => {

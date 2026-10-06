@@ -4,3 +4,5 @@ packages:
   - e2e
 onlyBuiltDependencies:
   - esbuild
+ignoredBuiltDependencies:
+  - sharp

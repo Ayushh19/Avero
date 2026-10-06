@@ -15,6 +15,7 @@ import {
   skus,
 } from '../../../db/schema';
 import type { SimulatedClock } from '../../../lib/clock';
+import { mediumUrlFor, thumbUrlFor, writeImageVariants } from '../../../lib/media';
 import { percentOf } from '@avero/shared';
 import { pickImage } from '../images';
 import { ensureSizeCharts } from '../size-charts';
@@ -79,15 +80,23 @@ const exists = (path: string) =>
     () => false,
   );
 
-/** Downloads every image once into MEDIA_DIR/catalog and returns public /media URLs. */
+interface RehostedImage {
+  url: string;
+  thumbUrl: string | null;
+  mediumUrl: string | null;
+  width: number;
+  height: number;
+}
+
+/** Downloads every image once into MEDIA_DIR/catalog (plus 400/640px variants) and returns public /media URLs. */
 async function rehostImages(
   images: NormalizedImage[],
   opts: ImportOptions,
-): Promise<{ urls: Map<string, { url: string; thumbUrl: string | null }>; downloaded: number }> {
+): Promise<{ urls: Map<string, RehostedImage>; downloaded: number }> {
   const dir = join(resolve(opts.mediaDir), 'catalog');
   await mkdir(dir, { recursive: true });
   const download = opts.download ?? httpDownload;
-  const urls = new Map<string, { url: string; thumbUrl: string | null }>();
+  const urls = new Map<string, RehostedImage>();
   let downloaded = 0;
 
   const save = async (source: string, file: string) => {
@@ -105,10 +114,17 @@ async function rehostImages(
     for (let img = queue.shift(); img; img = queue.shift()) {
       const safeId = img.externalId.replace(/[^A-Za-z0-9-]/g, '');
       await save(img.sourceUrl, `${safeId}.webp`);
-      if (img.sourceThumbUrl) await save(img.sourceThumbUrl, `${safeId}-thumb.webp`);
+      const url = `/media/catalog/${safeId}.webp`;
+      // Our own 400/640px sizes. If sharp can't read the file we fall back to the source's
+      // thumbnail, and the start-up backfill retries.
+      const sizes = await writeImageVariants(join(dir, `${safeId}.webp`)).catch(() => null);
+      if (!sizes && img.sourceThumbUrl) await save(img.sourceThumbUrl, `${safeId}-thumb.webp`);
       urls.set(img.externalId, {
-        url: `/media/catalog/${safeId}.webp`,
-        thumbUrl: img.sourceThumbUrl ? `/media/catalog/${safeId}-thumb.webp` : null,
+        url,
+        thumbUrl: sizes ? thumbUrlFor(url) : img.sourceThumbUrl ? `/media/catalog/${safeId}-thumb.webp` : null,
+        mediumUrl: sizes ? mediumUrlFor(url) : null,
+        width: sizes?.width ?? 1024,
+        height: sizes?.height ?? 1024,
       });
     }
   });
@@ -240,13 +256,10 @@ export async function importCatalog(db: Db, clock: SimulatedClock, opts: ImportO
             c.images.map((img) => ({
               colorwayId,
               externalId: img.externalId,
-              url: urls.get(img.externalId)!.url,
-              thumbUrl: urls.get(img.externalId)!.thumbUrl,
+              ...urls.get(img.externalId)!,
               title: img.title,
               alt: img.alt,
               position: img.position,
-              width: 1024,
-              height: 1024,
             })),
           );
         }

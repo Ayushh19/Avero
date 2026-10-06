@@ -27,8 +27,9 @@ export async function catalogRoutes(app: FastifyInstance): Promise<void> {
     return { collections: await catalog.listCollections(ctx) };
   });
 
-  app.get('/products', async (req) => {
+  app.get('/products', async (req, reply) => {
     const query = listingQuerySchema.parse(req.query);
+    reply.header('cache-control', publicCache);
     const result = await catalog.listProducts(ctx, query);
     if (query.q && query.offset === 0) {
       catalog.recordSearch(ctx, query.q, result.total).catch((err) => req.log.warn({ err }, 'search log failed'));
@@ -53,15 +54,19 @@ export async function catalogRoutes(app: FastifyInstance): Promise<void> {
     return catalog.suggest(ctx, q);
   });
 
-  app.get('/search/trending', async () => ({ queries: await catalog.trendingSearches(ctx) }));
+  app.get('/search/trending', async (_req, reply) => {
+    reply.header('cache-control', publicCache);
+    return { queries: await catalog.trendingSearches(ctx) };
+  });
 
   app.get('/delivery/estimate', async (req) => {
     const { pincode } = z.object({ pincode: z.string().trim().max(10) }).parse(req.query);
     return estimateDelivery(pincode, ctx.clock.now());
   });
 
-  app.get('/pincodes/:pincode', async (req) => {
+  app.get('/pincodes/:pincode', async (req, reply) => {
     const { pincode } = z.object({ pincode: z.string().trim().max(10) }).parse(req.params);
+    reply.header('cache-control', 'public, max-age=86400'); // static reference data
     return lookupPincode(pincode);
   });
 }

@@ -32,7 +32,7 @@ export function AnnouncementBar() {
     config ? `Easy ${config.returnWindowDays}-day returns & exchanges` : 'Easy returns & exchanges',
   ];
   return (
-    <div className={styles.announcement}>
+    <aside className={styles.announcement} aria-label="Store benefits">
       <p>
         {messages.map((m, i) => (
           <span key={m}>
@@ -41,7 +41,7 @@ export function AnnouncementBar() {
           </span>
         ))}
       </p>
-    </div>
+    </aside>
   );
 }
 

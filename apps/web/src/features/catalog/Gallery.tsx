@@ -4,6 +4,7 @@ import { useRef, useState, type KeyboardEvent } from 'react';
 import { Dialog } from '../../components/ui/Overlay';
 import { cx } from '../../lib/cx';
 import styles from './Gallery.module.css';
+import { imageSrcSet } from '../../lib/images';
 
 /**
  * Desktop: vertical thumbnails + large image. Mobile: swipeable scroll-snap strip.
@@ -50,7 +51,7 @@ export function Gallery({ images, name, badge }: { images: ImageDto[]; name: str
           <img
             key={current.url}
             src={current.url}
-            srcSet={current.thumbUrl ? `${current.thumbUrl} 400w, ${current.url} 1024w` : undefined}
+            srcSet={imageSrcSet(current)}
             sizes="(min-width: 1024px) 50vw, 100vw"
             alt={current.alt}
             fetchPriority="high"
@@ -73,7 +74,7 @@ export function Gallery({ images, name, badge }: { images: ImageDto[]; name: str
         >
           {images.map((img, i) => (
             <button key={img.url} type="button" className={styles.slide} onClick={() => setViewer(true)} aria-label={`Open image ${i + 1} full screen`}>
-              <img src={img.url} srcSet={img.thumbUrl ? `${img.thumbUrl} 400w, ${img.url} 1024w` : undefined} sizes="100vw" alt={img.alt} loading={i === 0 ? 'eager' : 'lazy'} decoding="async" />
+              <img src={img.url} srcSet={imageSrcSet(img)} sizes="100vw" alt={img.alt} loading={i === 0 ? 'eager' : 'lazy'} decoding="async" />
             </button>
           ))}
         </div>

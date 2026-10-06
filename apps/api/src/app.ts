@@ -10,6 +10,7 @@ import type { AppContext } from './context';
 import { openDatabase, runMigrations, type Database } from './db/client';
 import { registerJobHandlers } from './jobs/handlers';
 import { JobWorker } from './jobs/worker';
+import { backfillImageVariants } from './lib/media';
 import { SimulatedClock } from './lib/clock';
 import { Mailer } from './lib/mailer';
 import { accountRoutes } from './modules/account/routes';
@@ -120,7 +121,10 @@ export async function buildApp(options: BuildOptions): Promise<FastifyInstance> 
   registerGoogleCallbackAlias(app);
 
   app.addHook('onReady', async () => {
-    if (options.startWorker) await worker.start();
+    if (options.startWorker) {
+      await worker.start();
+      void backfillImageVariants(ctx, app.log);
+    }
   });
   app.addHook('onClose', async () => {
     worker.stop();

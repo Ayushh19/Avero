@@ -67,8 +67,9 @@ export async function engagementRoutes(app: FastifyInstance): Promise<void> {
   });
 
   /* ---- recommendations ---- */
-  app.get('/products/:slug/frequently-bought-together', async (req) => {
+  app.get('/products/:slug/frequently-bought-together', async (req, reply) => {
     const { slug } = slugParam.parse(req.params);
+    reply.header('cache-control', 'public, max-age=30, stale-while-revalidate=60');
     return { items: await frequentlyBoughtTogether(ctx, slug) };
   });
   app.get('/home/personal', async (req, reply) => {

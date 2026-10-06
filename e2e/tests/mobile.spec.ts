@@ -1,3 +1,4 @@
+import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 import { advanceOrder, guestDetails, memberOrder, payOnGateway, PRODUCT, signUp } from './helpers';
 
@@ -34,10 +35,30 @@ test.describe('on a phone', () => {
     await noSideways(page);
   });
 
+  test('menu and search overlays pass axe', async ({ page }) => {
+    const axe = async (label: string) => {
+      const { violations } = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice']).analyze();
+      expect.soft(violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`), label).toEqual([]);
+    };
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    await axe('home');
+    await page.getByRole('button', { name: 'Open menu' }).click();
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await axe('menu');
+    await page.keyboard.press('Escape');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await page.getByRole('combobox', { name: 'Search shoes and collections' }).filter({ visible: true }).pressSequentially('sne');
+    await expect(page.getByRole('listbox').filter({ visible: true })).toBeVisible();
+    await axe('search');
+  });
+
   test('chooses a size, checks out and pays', async ({ page }) => {
     await page.goto(`/p/${PRODUCT}`);
     await page.getByRole('radiogroup', { name: 'Size' }).getByRole('radio', { name: /^Size (?!.*sold out)/ }).first().click();
     await page.getByRole('button', { name: 'Add to bag' }).click();
+    // The bag drawer opens once the line is saved.
+    await expect(page.getByRole('dialog', { name: /^Your bag \(\d+\)/ })).toBeVisible();
     await page.goto('/checkout');
     await noSideways(page);
     await guestDetails(page);

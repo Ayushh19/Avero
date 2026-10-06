@@ -6,6 +6,7 @@ import { cx } from '../../lib/cx';
 import { ArrowLink, ButtonLink } from './Button';
 import { Badge, PriceTag, Rating } from './Commerce';
 import styles from './Merch.module.css';
+import { imageSrcSet } from '../../lib/images';
 
 export type SurfaceTone = 'muted' | 'sand' | 'sage' | 'mist' | 'mauve' | 'white';
 
@@ -28,9 +29,6 @@ interface ProductMediaProps {
   radius?: 'md' | 'lg' | 'xl' | 'arch' | 'none';
 }
 
-function srcSet(img: ImageDto) {
-  return img.thumbUrl ? `${img.thumbUrl} 400w, ${img.url} 1024w` : undefined;
-}
 
 /**
  * Reserves its box via aspect-ratio (no layout shift), lazy-loads unless `priority`, and fades
@@ -67,7 +65,7 @@ export function ProductMedia({
         <>
           <img
             src={image.url}
-            srcSet={srcSet(image)}
+            srcSet={imageSrcSet(image)}
             sizes={sizes}
             alt={alt ?? image.alt}
             loading={priority ? 'eager' : 'lazy'}
@@ -81,7 +79,7 @@ export function ProductMedia({
             className={cx(styles.img, loaded && styles.loaded)}
           />
           {hoverImage ? (
-            <img src={hoverImage.url} srcSet={srcSet(hoverImage)} sizes={sizes} alt="" loading="lazy" decoding="async" className={styles.hoverImg} />
+            <img src={hoverImage.url} srcSet={imageSrcSet(hoverImage)} sizes={sizes} alt="" loading="lazy" decoding="async" className={styles.hoverImg} />
           ) : null}
         </>
       ) : (
@@ -228,7 +226,7 @@ export function CollectionTile({ to, title, tone, image, arch, cta = 'Shop now' 
     <Link to={to} className={cx(styles.tile, styles[`tone-${tone}`], arch && styles.tileArch)}>
       <div className={styles.tileMedia}>
         {image ? (
-          <img src={image.url} srcSet={srcSet(image)} sizes="(min-width: 1024px) 25vw, 50vw" alt="" loading="lazy" decoding="async" />
+          <img src={image.url} srcSet={imageSrcSet(image)} sizes="(min-width: 1024px) 25vw, 50vw" alt="" loading="lazy" decoding="async" />
         ) : (
           <ShoePlaceholder label="" />
         )}

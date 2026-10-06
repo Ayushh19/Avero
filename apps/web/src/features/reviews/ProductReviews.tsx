@@ -55,6 +55,7 @@ export function ProductReviews({ slug }: { slug: string }) {
 
   return (
     <div className={styles.section}>
+      <h2 className="visually-hidden">Customer reviews</h2>
       <div className={styles.summary}>
         <div className={styles.score}>
           <p className={styles.average}>{d.summary.average.toFixed(1)}</p>

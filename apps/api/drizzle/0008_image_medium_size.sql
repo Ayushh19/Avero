@@ -1,0 +1,1 @@
+ALTER TABLE "colorway_images" ADD COLUMN "medium_url" text;

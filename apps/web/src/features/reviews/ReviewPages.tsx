@@ -12,6 +12,7 @@ import { errorMessage, fieldErrors } from '../../lib/api';
 import { reviewDate } from './ProductReviews';
 import { useDeleteReview, useMyReviews, useReviewable, useSaveReview, type ReviewInput } from './hooks';
 import styles from './Reviews.module.css';
+import { singleImage } from '../../lib/images';
 
 const FIT_COPY: Record<ReviewFit, { title: string; description: string }> = {
   small: { title: 'Runs small', description: 'Consider half a size up' },
@@ -19,7 +20,7 @@ const FIT_COPY: Record<ReviewFit, { title: string; description: string }> = {
   large: { title: 'Runs large', description: 'Consider half a size down' },
 };
 
-const image = (url: string | null) => (url ? { url, thumbUrl: url, alt: '' } : null);
+const image = (url: string | null) => singleImage(url);
 
 /* ---------------- /account/reviews ---------------- */
 

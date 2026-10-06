@@ -117,6 +117,8 @@ export const colorwayImages = pgTable(
     externalId: text(),
     url: text().notNull(),
     thumbUrl: text(),
+    /** 640px-wide variant made from the original at import (lib/media.ts). */
+    mediumUrl: text(),
     title: text(),
     alt: text().notNull().default(''),
     position: integer().notNull().default(0),

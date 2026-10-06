@@ -130,7 +130,7 @@ export async function buildCartDto(ctx: AppContext, cart: CartRow | null): Promi
       colorName: r.colorway.name,
       sizeLabel: r.sku.sizeLabel,
       href: `/p/${r.product.slug}/${r.colorway.slug}`,
-      image: img ? { url: img.url, thumbUrl: img.thumbUrl, alt: img.alt } : null,
+      image: img ? { url: img.url, thumbUrl: img.thumbUrl, mediumUrl: img.mediumUrl, alt: img.alt } : null,
       qty: r.item.qty,
       maxQty: cap,
       unitPricePaise: r.sku.pricePaise,

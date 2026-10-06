@@ -69,8 +69,8 @@ function stockState(status: string, onHand: number, reserved: number, lowThresho
   return available <= lowThreshold ? 'low' : 'available';
 }
 
-const toImage = (img: { url: string; thumbUrl: string | null; alt: string; title: string | null } | undefined): ImageDto | null =>
-  img ? { url: img.url, thumbUrl: img.thumbUrl, alt: img.alt, title: img.title } : null;
+const toImage = (img: { url: string; thumbUrl: string | null; mediumUrl: string | null; alt: string; title: string | null } | undefined): ImageDto | null =>
+  img ? { url: img.url, thumbUrl: img.thumbUrl, mediumUrl: img.mediumUrl, alt: img.alt, title: img.title } : null;
 
 /**
  * Read-optimised, in-memory view of the purchasable catalog for listing, facets and sorting.

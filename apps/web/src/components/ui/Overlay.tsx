@@ -74,12 +74,12 @@ export function Dialog({ open, onClose, title, children, footer, size = 'md' }: 
   return (
     <dialog ref={ref} className={cx(styles.overlay, styles.dialog, size === 'lg' && styles.dialogLg)} onClick={onClick} aria-label={title}>
       <div className={styles.panel}>
-        <header className={styles.head}>
+        <div className={styles.head}>
           <h2 className={styles.title}>{title}</h2>
           <button type="button" className={styles.close} onClick={onClose} aria-label="Close">
             <X size={20} aria-hidden />
           </button>
-        </header>
+        </div>
         <div className={styles.body}>{children}</div>
         {footer ? <footer className={styles.foot}>{footer}</footer> : null}
       </div>
@@ -92,12 +92,12 @@ export function Drawer({ open, onClose, title, children, footer, side = 'right' 
   return (
     <dialog ref={ref} className={cx(styles.overlay, styles.drawer, styles[side])} onClick={onClick} aria-label={title}>
       <div className={styles.panel}>
-        <header className={styles.head}>
+        <div className={styles.head}>
           <h2 className={styles.title}>{title}</h2>
           <button type="button" className={styles.close} onClick={onClose} aria-label="Close">
             <X size={20} aria-hidden />
           </button>
-        </header>
+        </div>
         <div className={styles.body}>{children}</div>
         {footer ? <footer className={styles.foot}>{footer}</footer> : null}
       </div>

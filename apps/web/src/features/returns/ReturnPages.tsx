@@ -15,6 +15,7 @@ import { REASON_COPY, REFUND_STATUS_COPY, RETURN_STATUS_COPY, dateTimeText, long
 import { returnPath } from '../orders/PostPurchase';
 import { useCancelReturn, useCreateReturn, useReturn, useReturnOptions, useReturns } from './hooks';
 import styles from './Returns.module.css';
+import { singleImage } from '../../lib/images';
 
 /* ---------------- request: /account/orders/:n/return and /orders/:n/return?token= ---------------- */
 
@@ -151,7 +152,7 @@ function ReturnForm({ data, token, refetch }: { data: NonNullable<ReturnType<typ
                   <li key={item.orderItemId} className={cx(styles.item, !can && styles.itemDisabled)}>
                     <div className={styles.itemTop}>
                       <span className={styles.itemMedia}>
-                        <ProductMedia image={item.imageUrl ? { url: item.imageUrl, thumbUrl: item.imageUrl, alt: '' } : null} alt="" radius="md" sizes="72px" />
+                        <ProductMedia image={singleImage(item.imageUrl)} alt="" radius="md" sizes="72px" />
                       </span>
                       <div className={styles.itemText}>
                         <Checkbox
@@ -414,7 +415,7 @@ function ReturnDetail({ ret, token, guest }: { ret: ReturnDto; token: string | n
             {ret.items.map((i) => (
               <li key={i.orderItemId} className={styles.itemTop}>
                 <span className={styles.itemMedia}>
-                  <ProductMedia image={i.imageUrl ? { url: i.imageUrl, thumbUrl: i.imageUrl, alt: '' } : null} alt="" radius="md" sizes="72px" />
+                  <ProductMedia image={singleImage(i.imageUrl)} alt="" radius="md" sizes="72px" />
                 </span>
                 <span className={styles.itemText}>
                   <strong>{i.productName}</strong>

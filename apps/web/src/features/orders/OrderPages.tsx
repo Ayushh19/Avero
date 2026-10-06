@@ -17,6 +17,7 @@ import { useStartPayment } from '../checkout/hooks';
 import { STATUS_COPY, failureText, longDate, timelineFor, useClaimOrders, useOrder, useOrderLookup, useOrders } from './hooks';
 import { ExchangeNote, OrderActions, RefundsPanel, ReturnsPanel, ShipmentPanel } from './PostPurchase';
 import styles from './Orders.module.css';
+import { singleImage } from '../../lib/images';
 
 const placedDate = (iso: string) =>
   new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' });
@@ -50,7 +51,7 @@ function OrderItems({ order }: { order: OrderDto }) {
       {order.items.map((i) => (
         <li key={i.id} className={styles.item}>
           <Link to={i.href} className={styles.itemMedia} tabIndex={-1} aria-hidden>
-            <ProductMedia image={i.imageUrl ? { url: i.imageUrl, thumbUrl: i.imageUrl, alt: '' } : null} alt="" radius="md" sizes="88px" />
+            <ProductMedia image={singleImage(i.imageUrl)} alt="" radius="md" sizes="88px" />
           </Link>
           <div>
             <Link to={i.href} className={styles.itemName}>
@@ -80,33 +81,35 @@ function OrderItems({ order }: { order: OrderDto }) {
 
 function OrderTotals({ order }: { order: OrderDto }) {
   return (
-    <dl className={styles.rows}>
-      <div>
-        <dt>Subtotal</dt>
-        <dd className="tabular">{formatINR(order.subtotalPaise)}</dd>
-      </div>
-      {order.discountPaise > 0 ? (
-        <div className={styles.discount}>
-          <dt>Coupon {order.couponCode}</dt>
-          <dd className="tabular">−{formatINR(order.discountPaise)}</dd>
+    <>
+      <dl className={styles.rows}>
+        <div>
+          <dt>Subtotal</dt>
+          <dd className="tabular">{formatINR(order.subtotalPaise)}</dd>
         </div>
-      ) : null}
-      {order.pointsDiscountPaise > 0 ? (
-        <div className={styles.discount}>
-          <dt>{order.pointsRedeemed} points</dt>
-          <dd className="tabular">−{formatINR(order.pointsDiscountPaise)}</dd>
+        {order.discountPaise > 0 ? (
+          <div className={styles.discount}>
+            <dt>Coupon {order.couponCode}</dt>
+            <dd className="tabular">−{formatINR(order.discountPaise)}</dd>
+          </div>
+        ) : null}
+        {order.pointsDiscountPaise > 0 ? (
+          <div className={styles.discount}>
+            <dt>{order.pointsRedeemed} points</dt>
+            <dd className="tabular">−{formatINR(order.pointsDiscountPaise)}</dd>
+          </div>
+        ) : null}
+        <div>
+          <dt>{order.shippingMethod === 'express' ? 'Express delivery' : 'Delivery'}</dt>
+          <dd className="tabular">{order.shippingPaise === 0 ? 'Free' : formatINR(order.shippingPaise)}</dd>
         </div>
-      ) : null}
-      <div>
-        <dt>{order.shippingMethod === 'express' ? 'Express delivery' : 'Delivery'}</dt>
-        <dd className="tabular">{order.shippingPaise === 0 ? 'Free' : formatINR(order.shippingPaise)}</dd>
-      </div>
-      <div className={styles.total}>
-        <dt>{order.paidPaise > 0 ? 'Paid' : 'Total'}</dt>
-        <dd className="tabular">{formatINR(order.paidPaise > 0 ? order.paidPaise : order.totalPaise)}</dd>
-      </div>
+        <div className={styles.total}>
+          <dt>{order.paidPaise > 0 ? 'Paid' : 'Total'}</dt>
+          <dd className="tabular">{formatINR(order.paidPaise > 0 ? order.paidPaise : order.totalPaise)}</dd>
+        </div>
+      </dl>
       <p className="meta">Includes GST of {formatINR(order.taxIncludedPaise)}.</p>
-    </dl>
+    </>
   );
 }
 

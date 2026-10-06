@@ -12,6 +12,7 @@ import { useListing } from '../../lib/catalog';
 import { WishlistCardButton } from '../wishlist/WishlistButton';
 import { ActiveFilters, FILTER_KEYS, FilterPanel, type ActiveFilter, type FilterUpdate } from './FilterPanel';
 import styles from './ListingPage.module.css';
+import { singleImage } from '../../lib/images';
 
 type Mode = 'category' | 'collection' | 'search';
 
@@ -127,7 +128,7 @@ export function ListingPage({ mode }: { mode: Mode }) {
         </div>
         {first?.context.heroImageUrl ? (
           <ProductMedia
-            image={{ url: first.context.heroImageUrl, thumbUrl: null, alt: '' }}
+            image={singleImage(first.context.heroImageUrl)!}
             ratio="5/2"
             radius="xl"
             priority
@@ -165,6 +166,7 @@ export function ListingPage({ mode }: { mode: Mode }) {
             <NoResults response={first} mode={mode} hasFilters={chips.length > 0} onClear={clearAll} />
           ) : (
             <div className={listing.isPlaceholderData ? styles.stale : undefined}>
+              <h2 className="visually-hidden">Products</h2>
               <ProductGrid>
                 {items.map((item, i) => (
                   <li key={item.colorwayId}>

@@ -1,4 +1,5 @@
 import type {
+  ImageDto,
   CheckoutAddressInput,
   CheckoutSessionDto,
   CheckoutSessionPatch,
@@ -65,7 +66,7 @@ interface CheckoutLine {
   row: LineRow;
   /** Quantity that will be bought: bag qty clamped to what's purchasable now. */
   qty: number;
-  image: { url: string; thumbUrl: string | null; alt: string } | null;
+  image: ImageDto | null;
 }
 
 interface BlockedLine {
@@ -81,7 +82,7 @@ async function loadCheckoutLines(db: DbOrTx, cartId: string): Promise<{ lines: C
         .from(colorwayImages)
         .where(and(inArray(colorwayImages.colorwayId, [...new Set(rows.map((r) => r.colorway.id))]), eq(colorwayImages.position, 0)))
     : [];
-  const imageBy = new Map(images.map((i) => [i.colorwayId, { url: i.url, thumbUrl: i.thumbUrl, alt: i.alt }]));
+  const imageBy = new Map(images.map((i) => [i.colorwayId, { url: i.url, thumbUrl: i.thumbUrl, mediumUrl: i.mediumUrl, alt: i.alt }]));
   const lines: CheckoutLine[] = [];
   const blocked: BlockedLine[] = [];
   for (const row of rows) {

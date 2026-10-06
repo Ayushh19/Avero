@@ -402,7 +402,7 @@ export async function getProductDetail(deps: CatalogDeps, slug: string): Promise
     hex: c.hex ?? '#B8B2A7',
     href: `/p/${product.slug}/${c.slug}`,
     purchasable: productActive && c.status === 'active',
-    images: imageRows.filter((i) => i.colorwayId === c.id).map((i) => ({ url: i.url, thumbUrl: i.thumbUrl, alt: i.alt, title: i.title })),
+    images: imageRows.filter((i) => i.colorwayId === c.id).map((i) => ({ url: i.url, thumbUrl: i.thumbUrl, mediumUrl: i.mediumUrl, alt: i.alt, title: i.title })),
     skus: skuRows
       .filter((s) => s.colorwayId === c.id && s.status !== 'draft')
       .map((s) => {
@@ -525,7 +525,7 @@ async function imageByRole(deps: CatalogDeps, from: { product: string; role: Ima
     orderBy: asc(colorwayImages.position),
   });
   const img = pickImage(images, from.role, from.nth);
-  return img ? { url: img.url, thumbUrl: img.thumbUrl, alt: img.alt, title: img.title } : item.image;
+  return img ? { url: img.url, thumbUrl: img.thumbUrl, mediumUrl: img.mediumUrl, alt: img.alt, title: img.title } : item.image;
 }
 
 export async function homeContent(deps: CatalogDeps): Promise<HomeDto> {
@@ -539,7 +539,7 @@ export async function homeContent(deps: CatalogDeps): Promise<HomeDto> {
   const hero = HOME_CONTENT.hero.flatMap((h) => {
     const c = snap.collections.find((x) => x.slug === h.collection);
     if (!c) return [];
-    const image = c.heroImageUrl ? { url: c.heroImageUrl, thumbUrl: null, alt: `${c.name} — AVERO` } : (collectionMembers(c.slug)[0]?.image ?? null);
+    const image = c.heroImageUrl ? { url: c.heroImageUrl, thumbUrl: null, mediumUrl: null, alt: `${c.name} — AVERO` } : (collectionMembers(c.slug)[0]?.image ?? null);
     return [{ eyebrow: h.eyebrow, title: h.title, body: h.body, image, to: `/collections/${c.slug}` }];
   });
 
