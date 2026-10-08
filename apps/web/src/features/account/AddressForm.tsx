@@ -1,10 +1,16 @@
 import { INDIAN_STATES, addressSchema, type AddressDto, type AddressInput } from '@avero/shared';
 import { useQuery } from '@tanstack/react-query';
-import { useState, type FormEvent } from 'react';
+import { MapPin } from 'lucide-react';
+import { lazy, Suspense, useState, type FormEvent } from 'react';
 import { Button } from '../../components/ui/Button';
+import { Skeleton } from '../../components/ui/Feedback';
 import { Checkbox, Field, FormError, SelectField } from '../../components/ui/Form';
 import { api } from '../../lib/api';
+import type { PickedAddress } from './MapPicker';
 import styles from './AddressForm.module.css';
+
+// Leaflet + map tiles load only when the shopper opens the map.
+const MapPicker = lazy(() => import('./MapPicker').then((m) => ({ default: m.MapPicker })));
 
 interface PincodeInfo {
   valid: boolean;
@@ -45,6 +51,7 @@ export function AddressForm({
     isDefault: initial?.isDefault ?? false,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [mapOpen, setMapOpen] = useState(false);
   const set = (k: keyof AddressInput) => (v: string | boolean) => setDraft((d) => ({ ...d, [k]: v }));
 
   const pin = String(draft.pincode ?? '');
@@ -59,6 +66,20 @@ export function AddressForm({
   if (info?.valid && info.state && !draft.state && (INDIAN_STATES as readonly string[]).includes(info.state)) {
     setDraft((d) => ({ ...d, state: info.state!, city: d.city || info.city || '' }));
   }
+
+  // The pin is an explicit choice, so it replaces area/city/state/PIN; house details are kept if typed.
+  const usePicked = (p: PickedAddress) => {
+    setDraft((d) => ({
+      ...d,
+      line1: d.line1 || p.line1 || '',
+      line2: p.line2 ?? d.line2,
+      city: p.city ?? d.city,
+      state: p.state ?? d.state,
+      pincode: p.pincode ?? d.pincode,
+    }));
+    setErrors({});
+    setMapOpen(false);
+  };
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -83,6 +104,17 @@ export function AddressForm({
 
   return (
     <form className={styles.form} onSubmit={submit} noValidate>
+      {mapOpen ? (
+        <Suspense fallback={<Skeleton height={380} radius="md" />}>
+          <MapPicker near={pin || String(draft.city ?? '') || undefined} onPick={usePicked} onClose={() => setMapOpen(false)} />
+        </Suspense>
+      ) : (
+        <div>
+          <Button size="sm" variant="secondary" icon={<MapPin size={14} aria-hidden />} onClick={() => setMapOpen(true)}>
+            Pick location on map
+          </Button>
+        </div>
+      )}
       <div className={styles.grid}>
         <Field label="Full name" autoComplete="name" {...field('fullName')} />
         <Field label="Mobile number" type="tel" inputMode="numeric" autoComplete="tel-national" hint="For delivery updates" {...field('phone')} />

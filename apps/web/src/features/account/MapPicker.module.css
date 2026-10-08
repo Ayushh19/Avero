@@ -1,0 +1,71 @@
+.picker {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: var(--hairline);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.map {
+  height: 280px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--color-surface-muted);
+  /* Keep Leaflet's panes below dialogs and the sticky header. */
+  isolation: isolate;
+  z-index: 0;
+}
+
+/* Leaflet's controls, toned down to the design system (no shadows on page content). */
+.map :global(.leaflet-bar) {
+  border: var(--hairline);
+  box-shadow: none;
+}
+.map :global(.leaflet-bar a) {
+  color: var(--color-ink);
+  background: var(--color-surface);
+}
+.map :global(.leaflet-control-attribution) {
+  font-size: var(--text-xs);
+}
+
+/* Drop pin: an ink teardrop with a hollow centre. */
+.pin {
+  background: none;
+  border: 0;
+}
+.pinShape {
+  position: absolute;
+  inset: 0;
+  border-radius: 50% 50% 50% 0;
+  background: var(--color-ink);
+  rotate: -45deg;
+  border: 2px solid var(--color-surface);
+}
+.pinShape::after {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border-radius: 50%;
+  background: var(--color-surface);
+}
+
+.result {
+  min-height: 1.5em;
+  font-size: var(--text-sm);
+  color: var(--color-ink-2);
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-3);
+}

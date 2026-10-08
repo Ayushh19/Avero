@@ -53,6 +53,9 @@
 }
 
 .body {
+  /* Contain absolutely positioned content (e.g. visually hidden checkbox inputs) so it scrolls and
+     clips with the body instead of overflowing the <dialog> and giving it a second scrollbar. */
+  position: relative;
   flex: 1;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -68,7 +71,7 @@
 /* dialog */
 .dialog {
   width: min(560px, calc(100vw - 32px));
-  max-height: min(86dvh, 820px);
+  max-height: min(92dvh, 880px);
   margin: auto;
 }
 .dialogLg {

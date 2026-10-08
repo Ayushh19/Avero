@@ -1,23 +1,36 @@
 .form {
   display: grid;
-  gap: var(--space-5);
+  gap: var(--space-4);
 }
 
 .grid {
   display: grid;
-  gap: var(--space-5) var(--space-4);
+  gap: var(--space-4);
 }
 
+/* Six tracks: pairs take half a row each, PIN / city / state a third each. */
 @media (min-width: 640px) {
   .grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
   }
-  .full {
+  .grid > * {
+    grid-column: span 3;
+  }
+  .grid > .full {
     grid-column: 1 / -1;
+  }
+  .grid > .third {
+    grid-column: span 2;
   }
 }
 
 .actions {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: var(--space-3);
+}
+
+.default {
+  margin-left: auto;
 }
