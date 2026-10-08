@@ -15,6 +15,15 @@ export const checkoutAddressSchema = addressSchema.omit({ isDefault: true });
 export type CheckoutAddressInput = z.infer<typeof checkoutAddressSchema>;
 
 /**
+ * Starts (or resumes) checkout. Without `buyNow` the session checks out the bag; with it, the
+ * session buys only that SKU and leaves the bag alone.
+ */
+export const startCheckoutSchema = z.object({
+  buyNow: z.object({ skuId: z.uuid(), qty: z.number().int().min(1).max(10).default(1) }).optional(),
+});
+export type StartCheckoutInput = z.infer<typeof startCheckoutSchema>;
+
+/**
  * Partial update of a checkout session. Every field is optional; `null` clears coupon.
  * Any change invalidates the current quote.
  */
@@ -94,6 +103,11 @@ export interface QuoteDto {
 export interface CheckoutSessionDto {
   id: string;
   status: 'open' | 'order_placed' | 'abandoned';
+  /** `bag`: everything in the bag; `buy_now`: the single item chosen with "Buy now". */
+  mode: 'bag' | 'buy_now';
+  /** What this checkout will buy (live prices; the quote is authoritative once it exists). */
+  items: { skuId: string; productName: string; colorName: string; sizeLabel: string; image: ImageDto | null; qty: number; totalPaise: number }[];
+  subtotalPaise: number;
   isGuest: boolean;
   email: string | null;
   phone: string | null;
@@ -109,7 +123,7 @@ export interface CheckoutSessionDto {
   ready: boolean;
   /** Coupons issued to this shopper only (e.g. referral welcome offer), not yet used. */
   personalCoupons: { code: string; description: string }[];
-  /** An earlier order from this bag still waiting for payment (offer "resume payment"). */
+  /** An earlier order from this checkout source (bag, or the same buy-now item) still waiting for payment (offer "resume payment"). */
   pendingOrder: { orderNumber: string; totalPaise: number; reservationExpiresAt: string } | null;
 }
 

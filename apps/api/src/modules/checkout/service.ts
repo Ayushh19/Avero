@@ -6,8 +6,9 @@ import type {
   QuoteDto,
   QuoteLineDto,
   ShippingMethod,
+  StartCheckoutInput,
 } from '@avero/shared';
-import { and, asc, desc, eq, gt, inArray } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, inArray, isNull, type SQL } from 'drizzle-orm';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { uuidv7 } from 'uuidv7';
 import { business } from '../../config/business';
@@ -26,7 +27,7 @@ import { enqueue } from '../../jobs/queue';
 import { addMinutes } from '../../lib/clock';
 import { randomCode, randomToken, sha256, stableStringify } from '../../lib/crypto';
 import { AppError } from '../../lib/errors';
-import { capFor, loadLines, resolveCart, type LineRow } from '../cart/service';
+import { capFor, loadLines, resolveCart, skuWithParents, type LineRow } from '../cart/service';
 import { estimateDelivery, lookupPincode } from '../delivery/pincode';
 import { reserveLines } from '../inventory/reservations';
 import { pointsBalance, redeemPoints } from '../loyalty/points';
@@ -60,11 +61,18 @@ export function guestToken(ctx: AppContext, req: FastifyRequest, reply: FastifyR
   return token;
 }
 
-/* ---------------- bag lines for checkout ---------------- */
+/* ---------------- lines for checkout ---------------- */
+
+/** What a session buys: the bag, or (buy now) one SKU on its own. Satisfied by a session row. */
+interface LineSource {
+  cartId: string;
+  buyNowSkuId: string | null;
+  buyNowQty: number | null;
+}
 
 interface CheckoutLine {
-  row: LineRow;
-  /** Quantity that will be bought: bag qty clamped to what's purchasable now. */
+  row: Pick<LineRow, 'sku' | 'colorway' | 'product'>;
+  /** Quantity that will be bought: requested qty clamped to what's purchasable now. */
   qty: number;
   image: ImageDto | null;
 }
@@ -74,8 +82,11 @@ interface BlockedLine {
   reason: 'unavailable' | 'out_of_stock';
 }
 
-async function loadCheckoutLines(db: DbOrTx, cartId: string): Promise<{ lines: CheckoutLine[]; blocked: BlockedLine[] }> {
-  const rows = (await loadLines(db, cartId)).filter((r) => !r.item.savedForLater);
+async function loadCheckoutLines(db: DbOrTx, source: LineSource): Promise<{ lines: CheckoutLine[]; blocked: BlockedLine[] }> {
+  const wanted = source.buyNowSkuId
+    ? [await skuWithParents(db, source.buyNowSkuId)].filter((r) => r !== undefined).map((row) => ({ row, qty: source.buyNowQty ?? 1 }))
+    : (await loadLines(db, source.cartId)).filter((r) => !r.item.savedForLater).map((row) => ({ row, qty: row.item.qty }));
+  const rows = wanted.map((w) => w.row);
   const images = rows.length
     ? await db
         .select()
@@ -85,17 +96,21 @@ async function loadCheckoutLines(db: DbOrTx, cartId: string): Promise<{ lines: C
   const imageBy = new Map(images.map((i) => [i.colorwayId, { url: i.url, thumbUrl: i.thumbUrl, mediumUrl: i.mediumUrl, alt: i.alt }]));
   const lines: CheckoutLine[] = [];
   const blocked: BlockedLine[] = [];
-  for (const row of rows) {
+  for (const { row, qty } of wanted) {
     const purchasable = row.product.status === 'active' && row.colorway.status === 'active' && row.sku.status === 'active';
     const cap = capFor(row);
     if (!purchasable) blocked.push({ skuId: row.sku.id, reason: 'unavailable' });
     else if (cap <= 0) blocked.push({ skuId: row.sku.id, reason: 'out_of_stock' });
-    else lines.push({ row, qty: Math.min(row.item.qty, cap), image: imageBy.get(row.colorway.id) ?? null });
+    else lines.push({ row, qty: Math.min(qty, cap), image: imageBy.get(row.colorway.id) ?? null });
   }
   return { lines, blocked };
 }
 
-function assertCheckoutable(lines: CheckoutLine[], blocked: BlockedLine[]): void {
+function assertCheckoutable(source: LineSource, lines: CheckoutLine[], blocked: BlockedLine[]): void {
+  if (source.buyNowSkuId) {
+    if (blocked.length || lines.length === 0) throw outOfStockFrom(source, blocked);
+    return;
+  }
   if (blocked.length) {
     throw new AppError('CART_NOT_READY', 'Some items in your bag are no longer available. Review your bag to continue.', { blocked });
   }
@@ -284,14 +299,21 @@ async function loadSession(ctx: AppContext, req: FastifyRequest, sessionId: stri
 
 const LIVE_UNPAID = ['PENDING_PAYMENT', 'PAYMENT_FAILED'] as const;
 
-async function pendingOrderFor(ctx: AppContext, cartId: string): Promise<CheckoutSessionDto['pendingOrder']> {
+/** Sessions that check out the same thing: the bag, or the same buy-now SKU. */
+const sameSource = (source: LineSource): SQL =>
+  source.buyNowSkuId
+    ? and(eq(checkoutSessions.buyNowSkuId, source.buyNowSkuId), eq(checkoutSessions.buyNowQty, source.buyNowQty ?? 1))!
+    : isNull(checkoutSessions.buyNowSkuId);
+
+async function pendingOrderFor(ctx: AppContext, source: LineSource): Promise<CheckoutSessionDto['pendingOrder']> {
   const [row] = await ctx.db
     .select({ orderNumber: orders.orderNumber, totalPaise: orders.totalPaise, reservationExpiresAt: orders.reservationExpiresAt })
     .from(orders)
     .innerJoin(checkoutSessions, eq(checkoutSessions.id, orders.checkoutSessionId))
     .where(
       and(
-        eq(checkoutSessions.cartId, cartId),
+        eq(checkoutSessions.cartId, source.cartId),
+        source.buyNowSkuId ? eq(checkoutSessions.buyNowSkuId, source.buyNowSkuId) : isNull(checkoutSessions.buyNowSkuId),
         inArray(orders.status, [...LIVE_UNPAID]),
         gt(orders.reservationExpiresAt, ctx.clock.now()),
       ),
@@ -313,9 +335,22 @@ async function toSessionDto(ctx: AppContext, session: SessionRow): Promise<Check
         latest: o.latest,
       }))
     : [];
+  const { lines } = await loadCheckoutLines(ctx.db, session);
+  const items = lines.map((l) => ({
+    skuId: l.row.sku.id,
+    productName: l.row.product.name,
+    colorName: l.row.colorway.name,
+    sizeLabel: l.row.sku.sizeLabel,
+    image: l.image,
+    qty: l.qty,
+    totalPaise: l.row.sku.pricePaise * l.qty,
+  }));
   return {
     id: session.id,
     status: session.status,
+    mode: session.buyNowSkuId ? 'buy_now' : 'bag',
+    items,
+    subtotalPaise: items.reduce((s, i) => s + i.totalPaise, 0),
     isGuest: session.userId === null,
     email: session.email,
     phone: session.phone,
@@ -326,7 +361,7 @@ async function toSessionDto(ctx: AppContext, session: SessionRow): Promise<Check
     pointsToRedeem: session.pointsToRedeem,
     quote,
     ready: Boolean(session.email && session.phone && session.address),
-    pendingOrder: await pendingOrderFor(ctx, session.cartId),
+    pendingOrder: await pendingOrderFor(ctx, session),
     personalCoupons: session.userId
       ? (await personalCoupons(ctx.db, session.userId, now)).map(({ code, description }) => ({ code, description }))
       : [],
@@ -347,22 +382,30 @@ function toAddressInput(a: AddressSnapshot): CheckoutAddressInput {
 }
 
 /**
- * Creates (or resumes) the open checkout session for the shopper's bag. Members get contact
- * details and their default address prefilled.
+ * Creates (or resumes) the open checkout session for the shopper's bag, or — with `buyNow` — for
+ * that one item alone (the bag is neither read nor trimmed). Members get contact details and their
+ * default address prefilled.
  */
-export async function startSession(ctx: AppContext, req: FastifyRequest, reply: FastifyReply): Promise<CheckoutSessionDto> {
-  const cart = await requireCart(ctx, req);
-  const { lines, blocked } = await loadCheckoutLines(ctx.db, cart.id);
-  assertCheckoutable(lines, blocked);
+export async function startSession(
+  ctx: AppContext,
+  req: FastifyRequest,
+  reply: FastifyReply,
+  input: StartCheckoutInput = {},
+): Promise<CheckoutSessionDto> {
+  // Buy now still anchors the session to the shopper's bag (that's what proves ownership later).
+  const cart = input.buyNow ? (await resolveCart(ctx, req, reply, true))! : await requireCart(ctx, req);
+  const source: LineSource = { cartId: cart.id, buyNowSkuId: input.buyNow?.skuId ?? null, buyNowQty: input.buyNow?.qty ?? null };
+  const { lines, blocked } = await loadCheckoutLines(ctx.db, source);
+  assertCheckoutable(source, lines, blocked);
   if (!req.user) guestToken(ctx, req, reply);
 
   const existing = await ctx.db.query.checkoutSessions.findFirst({
-    where: and(eq(checkoutSessions.cartId, cart.id), eq(checkoutSessions.status, 'open')),
+    where: and(eq(checkoutSessions.cartId, cart.id), eq(checkoutSessions.status, 'open'), sameSource(source)),
     orderBy: desc(checkoutSessions.createdAt),
   });
   if (existing) return toSessionDto(ctx, existing);
 
-  // Starting again from the same bag (e.g. after an order expired): keep what was already entered.
+  // Starting again from the same bag (e.g. after an order expired, or a buy-now): keep what was already entered.
   const previous = await ctx.db.query.checkoutSessions.findFirst({
     where: eq(checkoutSessions.cartId, cart.id),
     orderBy: desc(checkoutSessions.createdAt),
@@ -372,6 +415,8 @@ export async function startSession(ctx: AppContext, req: FastifyRequest, reply: 
       .insert(checkoutSessions)
       .values({
         cartId: cart.id,
+        buyNowSkuId: source.buyNowSkuId,
+        buyNowQty: source.buyNowQty,
         userId: previous.userId,
         email: previous.email,
         phone: previous.phone,
@@ -395,6 +440,8 @@ export async function startSession(ctx: AppContext, req: FastifyRequest, reply: 
     .insert(checkoutSessions)
     .values({
       cartId: cart.id,
+      buyNowSkuId: source.buyNowSkuId,
+      buyNowQty: source.buyNowQty,
       userId: req.user?.id ?? null,
       email: req.user?.email ?? null,
       phone: req.user?.phone ?? address?.phone ?? null,
@@ -430,7 +477,7 @@ export async function patchSession(
   sessionId: string,
   patch: CheckoutSessionPatch,
 ): Promise<CheckoutSessionDto> {
-  const { session, cart } = await loadSession(ctx, req, sessionId);
+  const { session } = await loadSession(ctx, req, sessionId);
   if (session.status !== 'open') throw new AppError('CONFLICT', 'An order has already been placed from this checkout');
   const user = req.user;
   const set: Partial<typeof checkoutSessions.$inferInsert> = {};
@@ -487,8 +534,8 @@ export async function patchSession(
     if (patch.couponCode === null) set.couponCode = null;
     else {
       // Reject a coupon that can't apply right now, with the precise reason.
-      const { lines, blocked } = await loadCheckoutLines(ctx.db, cart.id);
-      assertCheckoutable(lines, blocked);
+      const { lines, blocked } = await loadCheckoutLines(ctx.db, session);
+      assertCheckoutable(session, lines, blocked);
       const email = set.email ?? session.email;
       const v = await validateCoupon(ctx, ctx.db, patch.couponCode, { userId: session.userId, email }, couponRefs(lines));
       const trial = priceQuote({
@@ -528,10 +575,10 @@ async function saveToAddressBook(ctx: AppContext, userId: string, a: AddressSnap
 
 /** Computes, stores and returns the final quote the shopper confirms (valid 10 minutes). */
 export async function quoteSession(ctx: AppContext, req: FastifyRequest, sessionId: string): Promise<QuoteDto> {
-  const { session, cart } = await loadSession(ctx, req, sessionId);
+  const { session } = await loadSession(ctx, req, sessionId);
   if (session.status !== 'open') throw new AppError('CONFLICT', 'An order has already been placed from this checkout');
-  const { lines, blocked } = await loadCheckoutLines(ctx.db, cart.id);
-  assertCheckoutable(lines, blocked);
+  const { lines, blocked } = await loadCheckoutLines(ctx.db, session);
+  assertCheckoutable(session, lines, blocked);
   const quote = await computeQuote(ctx, ctx.db, session, lines);
   await storeQuote(ctx.db, session.id, quote);
   return quote;
@@ -552,11 +599,12 @@ export function orderNumber(now: Date): string {
   return `AV-${yymm}-${randomCode(5)}`;
 }
 
-function outOfStockFrom(blocked: BlockedLine[]): AppError {
-  const unavailable = blocked.every((b) => b.reason === 'unavailable');
+function outOfStockFrom(source: LineSource, blocked: BlockedLine[]): AppError {
+  const unavailable = blocked.length > 0 && blocked.every((b) => b.reason === 'unavailable');
+  const where = source.buyNowSkuId ? 'This item' : 'Some items in your bag';
   return new AppError(
     unavailable ? 'SKU_UNAVAILABLE' : 'SKU_OUT_OF_STOCK',
-    unavailable ? 'Some items in your bag are no longer available' : 'Some items in your bag just sold out',
+    unavailable ? `${where} ${source.buyNowSkuId ? 'is' : 'are'} no longer available` : `${where} just sold out`,
     { blocked },
   );
 }
@@ -572,7 +620,7 @@ export async function placeOrder(
   reply: FastifyReply,
   input: { sessionId: string; quoteHash: string },
 ): Promise<OrderRow> {
-  const { session, cart } = await loadSession(ctx, req, input.sessionId);
+  const { session } = await loadSession(ctx, req, input.sessionId);
   const guestHash = req.user ? null : sha256(guestToken(ctx, req, reply));
 
   // ---- 1. Check the confirmed quote against live data (outside the transaction so a fresh
@@ -583,8 +631,8 @@ export async function placeOrder(
   }
   if (session.status !== 'open') throw new AppError('NOT_FOUND', 'This checkout has ended. Please start again from your bag.');
 
-  const { lines, blocked } = await loadCheckoutLines(ctx.db, cart.id);
-  if (blocked.length) throw outOfStockFrom(blocked);
+  const { lines, blocked } = await loadCheckoutLines(ctx.db, session);
+  if (blocked.length) throw outOfStockFrom(session, blocked);
   if (lines.length === 0) throw new AppError('CART_NOT_READY', 'Your bag is empty');
 
   const confirmed = session.quote as QuoteDto | null;
@@ -630,8 +678,8 @@ export async function placeOrder(
       throw new AppError('CONFLICT', 'This checkout changed while placing your order. Please review it again.');
     }
     // Re-price inside the transaction: anything that moved since step 1 shows up as a hash change.
-    const txLines = await loadCheckoutLines(tx, cart.id);
-    if (txLines.blocked.length) throw outOfStockFrom(txLines.blocked);
+    const txLines = await loadCheckoutLines(tx, locked);
+    if (txLines.blocked.length) throw outOfStockFrom(locked, txLines.blocked);
     const check = await computeQuote(ctx, tx, locked, txLines.lines);
     if (check.hash !== input.quoteHash) {
       throw new AppError('QUOTE_CHANGED', 'Prices or offers changed while placing your order. Please review it again.', {

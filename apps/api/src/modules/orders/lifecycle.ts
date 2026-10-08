@@ -162,6 +162,7 @@ async function confirm(ctx: AppContext, tx: Tx, order: OrderRow): Promise<void> 
 async function subtractFromBag(tx: Tx, order: OrderRow): Promise<void> {
   if (!order.checkoutSessionId) return; // exchange replacement orders never came from a bag
   const session = await tx.query.checkoutSessions.findFirst({ where: eq(checkoutSessions.id, order.checkoutSessionId) });
+  if (session?.buyNowSkuId) return; // "Buy now" bypassed the bag, so there's nothing to trim
   let cart = session ? await tx.query.carts.findFirst({ where: and(eq(carts.id, session.cartId), eq(carts.status, 'active')) }) : undefined;
   // A guest who signed in after ordering had their bag merged into their account bag.
   if (!cart && order.userId) {

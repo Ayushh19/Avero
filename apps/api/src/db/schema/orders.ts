@@ -61,10 +61,19 @@ export const checkoutSessions = pgTable(
     quoteHash: text(),
     quoteExpiresAt: ts(),
     status: checkoutSessionStatus().notNull().default('open'),
+    /** "Buy now": the session buys only this SKU and ignores (and never trims) the bag. */
+    buyNowSkuId: uuid().references(() => skus.id),
+    buyNowQty: integer(),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [index('checkout_sessions_cart_idx').on(t.cartId)],
+  (t) => [
+    index('checkout_sessions_cart_idx').on(t.cartId),
+    check(
+      'checkout_sessions_buy_now_pair',
+      sql`(${t.buyNowSkuId} IS NULL AND ${t.buyNowQty} IS NULL) OR (${t.buyNowSkuId} IS NOT NULL AND ${t.buyNowQty} > 0)`,
+    ),
+  ],
 );
 
 export const orderStatus = pgEnum('order_status', ORDER_STATUSES);

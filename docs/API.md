@@ -32,7 +32,7 @@ Sign-in/sign-up also triggers bag merge; the response includes a `merge` summary
 | GET | `/categories` | Tree |
 | GET | `/collections`, `/collections/:slug` | |
 | GET | `/products` | PLP: `category`, `collection`, `q`, `size[]`, `color[]`, `gender[]`, `activity[]`, `price_min`, `price_max`, `rating_min`, `on_sale`, `new`, `sort`, `cursor` → items + facets |
-| GET | `/home` | Home composition (hero, tiles, editorial, showcase) |
+| GET | `/home` | Home composition (hero, tiles, editorial slides, showcase) |
 | GET | `/products/by-colorway?ids=` | Cards for a guest's device wishlist / recently viewed |
 | GET | `/products/:slug` | PDP aggregate (product, colorways, images, SKUs with availability, size chart, rating summary) |
 | GET | `/skus/availability?ids=` | Fresh stock states (short cache) |
@@ -72,7 +72,7 @@ Sign-in/sign-up also triggers bag merge; the response includes a `merge` summary
 ## Checkout & payments
 | Method | Path | Purpose |
 |---|---|---|
-| POST | `/checkout/session` | Create or resume the open session for the bag (members prefilled); `pendingOrder` if an earlier order from this bag awaits payment. `CART_NOT_READY` for empty/blocked bags |
+| POST | `/checkout/session` | `{ buyNow?: { skuId, qty } }`. Create or resume the open session for the bag — or, with `buyNow`, for that one item alone (`mode: 'buy_now'`; `SKU_OUT_OF_STOCK`/`SKU_UNAVAILABLE` if it can't be bought). Members prefilled; `pendingOrder` if an earlier order from this bag awaits payment. `CART_NOT_READY` for empty/blocked bags |
 | GET | `/checkout/session/:id` | Session (refresh-safe) |
 | PATCH | `/checkout/session/:id` | `{ email?, phone?, addressId? \| address?, saveAddress?, shippingMethod?, couponCode? (null clears), pointsToRedeem? }`; clears the quote. Errors: `PINCODE_NOT_SERVICEABLE`, `SHIPPING_METHOD_UNAVAILABLE`, `COUPON_*`, `POINTS_INSUFFICIENT` |
 | POST | `/checkout/session/:id/quote` | Final quote (lines, totals, hash, 10-min expiry); an inapplicable coupon shows as `couponError` |

@@ -64,6 +64,13 @@
       "when": 1791298294265,
       "tag": "0008_image_medium_size",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1791361489850,
+      "tag": "0009_buy_now",
+      "breakpoints": true
     }
   ]
 }

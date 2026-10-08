@@ -9,15 +9,32 @@ import type {
 } from '@avero/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRef } from 'react';
+import { useSearchParams } from 'react-router';
 import { ApiError, api, newIdempotencyKey } from '../../lib/api';
 
-export const sessionKey = ['checkout', 'session'] as const;
+/** `/checkout?buy=<skuId>&qty=1` checks out that one item ("Buy now"); plain `/checkout` the bag. */
+export function buyNowHref(skuId: string, qty = 1) {
+  return `/checkout?${new URLSearchParams({ buy: skuId, qty: String(qty) })}`;
+}
 
-/** Creates or resumes the server-side checkout for the current bag (refresh-safe). */
+function useBuyNow() {
+  const [params] = useSearchParams();
+  const skuId = params.get('buy');
+  return skuId ? { skuId, qty: Math.max(1, Number(params.get('qty')) || 1) } : null;
+}
+
+/** Cache key of the checkout on this URL (the bag and each buy-now item have their own). */
+export function useSessionKey() {
+  const buyNow = useBuyNow();
+  return ['checkout', 'session', buyNow ? `${buyNow.skuId}:${buyNow.qty}` : 'bag'] as const;
+}
+
+/** Creates or resumes the server-side checkout for the bag or the buy-now item (refresh-safe). */
 export function useCheckoutSession() {
+  const buyNow = useBuyNow();
   return useQuery({
-    queryKey: sessionKey,
-    queryFn: () => api.post<{ session: CheckoutSessionDto }>('/checkout/session'),
+    queryKey: useSessionKey(),
+    queryFn: () => api.post<{ session: CheckoutSessionDto }>('/checkout/session', buyNow ? { buyNow } : undefined),
     select: (d) => d.session,
     refetchOnWindowFocus: false,
     retry: false,
@@ -26,7 +43,8 @@ export function useCheckoutSession() {
 
 function useSetSession() {
   const qc = useQueryClient();
-  return (session: CheckoutSessionDto) => qc.setQueryData(sessionKey, { session });
+  const key = useSessionKey();
+  return (session: CheckoutSessionDto) => qc.setQueryData(key, { session });
 }
 
 export function usePatchSession(sessionId: string | undefined) {
@@ -40,14 +58,15 @@ export function usePatchSession(sessionId: string | undefined) {
 
 export function useQuote(sessionId: string | undefined) {
   const qc = useQueryClient();
+  const key = useSessionKey();
   return useMutation({
     mutationFn: () => api.post<{ quote: QuoteDto }>(`/checkout/session/${sessionId}/quote`),
-    onSuccess: ({ quote }) => storeQuote(qc, quote),
+    onSuccess: ({ quote }) => storeQuote(qc, key, quote),
   });
 }
 
-function storeQuote(qc: ReturnType<typeof useQueryClient>, quote: QuoteDto) {
-  qc.setQueryData<{ session: CheckoutSessionDto }>(sessionKey, (prev) => (prev ? { session: { ...prev.session, quote } } : prev));
+function storeQuote(qc: ReturnType<typeof useQueryClient>, key: ReturnType<typeof useSessionKey>, quote: QuoteDto) {
+  qc.setQueryData<{ session: CheckoutSessionDto }>(key, (prev) => (prev ? { session: { ...prev.session, quote } } : prev));
 }
 
 /**
@@ -67,6 +86,7 @@ export function useIntentKey() {
 
 export function usePlaceOrder() {
   const qc = useQueryClient();
+  const key = useSessionKey();
   const intent = useIntentKey();
   return useMutation({
     mutationFn: (input: { sessionId: string; quoteHash: string }) =>
@@ -75,7 +95,7 @@ export function usePlaceOrder() {
     onError: (err) => {
       // The server re-priced: show the shopper the fresh quote it sent back.
       const quote = err instanceof ApiError ? (err.details as { quote?: QuoteDto } | undefined)?.quote : undefined;
-      if (quote) storeQuote(qc, quote);
+      if (quote) storeQuote(qc, key, quote);
     },
   });
 }

@@ -177,7 +177,7 @@ export async function bumpVersion(db: DbOrTx, cartId: string): Promise<void> {
   await db.update(carts).set({ version: sql`${carts.version} + 1` }).where(eq(carts.id, cartId));
 }
 
-async function skuWithParents(db: DbOrTx, skuId: string) {
+export async function skuWithParents(db: DbOrTx, skuId: string) {
   const [row] = await db
     .select({ sku: skus, colorway: colorways, product: products })
     .from(skus)

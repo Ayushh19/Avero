@@ -90,6 +90,68 @@ describe('checkout session & quote', () => {
   });
 });
 
+describe('buy now', () => {
+  const buyNow = (c: ReturnType<typeof client>, skuId: string, qty = 1) => c.post(api('/checkout/session'), { buyNow: { skuId, qty } });
+
+  it('checks out only the chosen item, leaving the rest of the bag alone', async () => {
+    const c = client(app);
+    const inBag = await w.sku(5, 2_499_00);
+    const chosen = await w.sku(5, 1_999_00);
+    await c.post(api('/cart/items'), { skuId: inBag.id, qty: 2 });
+
+    const started = await buyNow(c, chosen.id);
+    expect(started.statusCode, started.body).toBe(200);
+    const session = started.json().session;
+    expect(session).toMatchObject({ mode: 'buy_now', subtotalPaise: 1_999_00 });
+    expect(session.items.map((i: { skuId: string; qty: number }) => [i.skuId, i.qty])).toEqual([[chosen.id, 1]]);
+    // Refresh resumes the same session; the bag's own checkout is separate.
+    expect((await buyNow(c, chosen.id)).json().session.id).toBe(session.id);
+    const bagSession = (await c.post(api('/checkout/session'))).json().session;
+    expect(bagSession).toMatchObject({ mode: 'bag', subtotalPaise: 2 * 2_499_00 });
+    expect(bagSession.id).not.toBe(session.id);
+
+    await patch(c, session.id, { email: 'buynow@example.com', phone: '9876543210', address: ADDRESS });
+    const quote = (await c.post(api(`/checkout/session/${session.id}/quote`))).json().quote;
+    expect(quote.lines.map((l: { skuId: string }) => l.skuId)).toEqual([chosen.id]);
+    expect(quote.subtotalPaise).toBe(1_999_00);
+
+    const res = await placeOrder(c, session.id, quote.hash);
+    expect(res.statusCode, res.body).toBe(201);
+    const order = res.json().order;
+    expect(order.items.map((i: { skuId: string }) => i.skuId)).toEqual([chosen.id]);
+    expect(await w.stock(inBag.id)).toEqual({ onHand: 5, reserved: 0 });
+    expect(await w.stock(chosen.id)).toEqual({ onHand: 5, reserved: 1 });
+    // The pending buy-now order isn't offered as "resume payment" for the bag.
+    expect((await c.post(api('/checkout/session'))).json().session.pendingOrder).toBeNull();
+
+    // Paying never trims the bag, even if it holds the same SKU.
+    await c.post(api('/cart/items'), { skuId: chosen.id, qty: 1 });
+    await pay(c, order.orderNumber, 'success');
+    await w.elapse(2);
+    expect((await orderOf(c, order.orderNumber)).status).toBe('CONFIRMED');
+    const bag = (await c.get(api('/cart'))).json().cart;
+    expect(bag.lines.map((l: { skuId: string; qty: number }) => [l.skuId, l.qty])).toEqual([
+      [inBag.id, 2],
+      [chosen.id, 1],
+    ]);
+  });
+
+  it('works for a guest with no bag yet, and refuses sold-out or unavailable items', async () => {
+    const c = client(app);
+    const sku = await w.sku(1);
+    const started = await buyNow(c, sku.id, 3);
+    expect(started.statusCode, started.body).toBe(200);
+    expect(started.json().session).toMatchObject({ mode: 'buy_now', isGuest: true, items: [{ skuId: sku.id, qty: 1 }] }); // clamped to stock
+
+    const soldOut = await w.sku(0);
+    const res = await buyNow(c, soldOut.id);
+    expect(res.json().error).toMatchObject({ code: 'SKU_OUT_OF_STOCK', message: 'This item just sold out' });
+    const gone = await w.sku(3);
+    await app.ctx.db.update(skus).set({ status: 'discontinued' }).where(eq(skus.id, gone.id));
+    expect((await buyNow(c, gone.id)).json().error.code).toBe('SKU_UNAVAILABLE');
+  });
+});
+
 describe('coupons', () => {
   it('reports the precise reason a coupon cannot be applied', async () => {
     const c = client(app);

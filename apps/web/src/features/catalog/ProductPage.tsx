@@ -17,6 +17,7 @@ import { deliveryPromise } from '../../lib/shipping';
 import { savedPincode } from '../../lib/storage';
 import { useMe, usePublicConfig } from '../auth/hooks';
 import { useAddToBag } from '../bag/hooks';
+import { buyNowHref } from '../checkout/hooks';
 import { RecentlyViewedRail, useRecordView } from '../recent/recentlyViewed';
 import { WishlistCardButton, WishlistIconButton } from '../wishlist/WishlistButton';
 import { Gallery } from './Gallery';
@@ -104,19 +105,25 @@ function ProductView({ product: p, colorway }: { product: ProductDetailDto; colo
     return selected;
   };
 
-  const add = (then?: () => void) => {
+  const add = () => {
     const sku = requireSize();
     if (!sku || sku.state === 'unavailable') return;
     addToBag.mutate(
       { skuId: sku.id },
       {
-        onSuccess: then,
         onError: (err) => {
           setSizeError(errorMessage(err));
           toast.error(errorMessage(err));
         },
       },
     );
+  };
+
+  // Checks out this item alone: the bag (and its drawer) are left untouched.
+  const buyNow = () => {
+    const sku = requireSize();
+    if (!sku || sku.state === 'unavailable') return;
+    navigate(buyNowHref(sku.id));
   };
 
   const stock =
@@ -214,7 +221,7 @@ function ProductView({ product: p, colorway }: { product: ProductDetailDto; colo
             <NotifyMe sku={selected} defaultEmail={user?.email} />
           ) : (
             <div className={styles.actions}>
-              <Button size="lg" fullWidth onClick={() => add()} loading={addToBag.isPending} disabled={!purchasable || allSoldOut}>
+              <Button size="lg" fullWidth onClick={add} loading={addToBag.isPending} disabled={!purchasable || allSoldOut}>
                 {allSoldOut ? 'Sold out' : 'Add to bag'}
               </Button>
               <WishlistIconButton item={{ colorwayId: colorway.id, name: p.name, pricePaise: price }} />
@@ -223,8 +230,8 @@ function ProductView({ product: p, colorway }: { product: ProductDetailDto; colo
                 size="lg"
                 fullWidth
                 className={styles.buyNow}
-                disabled={!purchasable || allSoldOut || addToBag.isPending}
-                onClick={() => add(() => navigate('/checkout'))}
+                disabled={!purchasable || allSoldOut}
+                onClick={buyNow}
               >
                 Buy now
               </Button>

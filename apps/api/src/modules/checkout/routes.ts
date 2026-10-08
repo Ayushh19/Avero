@@ -1,4 +1,4 @@
-import { checkoutSessionPatchSchema, placeOrderSchema } from '@avero/shared';
+import { checkoutSessionPatchSchema, placeOrderSchema, startCheckoutSchema } from '@avero/shared';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { withIdempotency } from '../../lib/idempotency';
@@ -15,8 +15,10 @@ export async function checkoutRoutes(app: FastifyInstance): Promise<void> {
     reply.header('cache-control', 'no-store');
   });
 
-  /** Create or resume the open checkout for the current bag. */
-  app.post('/checkout/session', async (req, reply) => ({ session: await checkout.startSession(ctx, req, reply) }));
+  /** Create or resume the open checkout for the current bag, or for a single "buy now" item. */
+  app.post('/checkout/session', async (req, reply) => ({
+    session: await checkout.startSession(ctx, req, reply, startCheckoutSchema.parse(req.body ?? {})),
+  }));
 
   app.get('/checkout/session/:id', async (req) => {
     const { id } = idParam.parse(req.params);

@@ -19,12 +19,13 @@ import { cx } from '../../lib/cx';
 import { AddressForm } from '../account/AddressForm';
 import { useAddresses } from '../account/sections';
 import { useMe, usePublicConfig } from '../auth/hooks';
-import { cartKey, useCart } from '../bag/hooks';
+import { cartKey } from '../bag/hooks';
 import {
   useCheckoutSession,
   usePatchSession,
   usePlaceOrder,
   useQuote,
+  useSessionKey,
   useStartPayment,
 } from './hooks';
 import styles from './Checkout.module.css';
@@ -92,6 +93,19 @@ export function CheckoutPage() {
                 {err.message === 'Your bag is empty' ? 'Start shopping' : 'Review your bag'}
               </ButtonLink>
             }
+          />
+        </main>
+      );
+    }
+    // "Buy now" on an item that sold out or was withdrawn since the product page loaded.
+    if (err instanceof ApiError && (err.code === 'SKU_OUT_OF_STOCK' || err.code === 'SKU_UNAVAILABLE')) {
+      return (
+        <main className="container">
+          <EmptyState
+            icon={ShoppingBag}
+            title={err.message}
+            body="Pick another size or colour, or keep browsing."
+            action={<ButtonLink to="/collections/new-arrivals">Keep shopping</ButtonLink>}
           />
         </main>
       );
@@ -365,9 +379,8 @@ function AddressStep({ session, index, current, go }: StepProps) {
 
 function DeliveryStep({ session, index, current, go }: StepProps) {
   const patch = usePatchSession(session.id);
-  const { data: cart } = useCart();
   const { data: config } = usePublicConfig();
-  const subtotal = session.quote?.subtotalPaise ?? cart?.totals.subtotalPaise ?? 0;
+  const subtotal = session.quote?.subtotalPaise ?? session.subtotalPaise;
   const threshold = config?.freeShippingThresholdPaise ?? 0;
   // Show the shopper's choice immediately; the server's answer replaces it (or reverts on error).
   const [picked, setPicked] = useState<CheckoutSessionDto['shippingMethod'] | null>(null);
@@ -514,7 +527,7 @@ function ReviewStep({ session, index, current }: Omit<StepProps, 'go'>) {
           return setProblem({
             tone: 'danger',
             title: `${err.message}. Nothing has been charged.`,
-            bagLink: true,
+            bagLink: session.mode === 'bag',
           });
         case 'CONFLICT':
           if (details?.orderNumber) {
@@ -646,10 +659,10 @@ function quoteKey(s: CheckoutSessionDto) {
 
 function OrderSummary({ session }: { session: CheckoutSessionDto }) {
   const quote = useQuote(session.id);
-  const { data: cart } = useCart();
   const q = session.quote;
   const failedFor = useRef<string | null>(null);
   const qc = useQueryClient();
+  const sessionKey = useSessionKey();
 
   // Keep a live quote whenever the details are complete (any change clears it server-side).
   const key = quoteKey(session);
@@ -665,14 +678,14 @@ function OrderSummary({ session }: { session: CheckoutSessionDto }) {
     const ms = new Date(q.expiresAt).getTime() - Date.now();
     const t = window.setTimeout(
       () => {
-        qc.setQueryData<{ session: CheckoutSessionDto }>(['checkout', 'session'], (prev) =>
+        qc.setQueryData<{ session: CheckoutSessionDto }>(sessionKey, (prev) =>
           prev ? { session: { ...prev.session, quote: null } } : prev,
         );
       },
       Math.max(ms, 0) + 500,
     );
     return () => window.clearTimeout(t);
-  }, [q, qc]);
+  }, [q, qc, sessionKey]);
 
   const lines = q
     ? q.lines.map((l) => ({
@@ -683,16 +696,14 @@ function OrderSummary({ session }: { session: CheckoutSessionDto }) {
         image: l.image,
         total: l.subtotalPaise,
       }))
-    : (cart?.lines ?? [])
-        .filter((l) => !l.issues.some((i) => i.blocking))
-        .map((l) => ({
-          key: l.skuId,
-          name: l.productName,
-          meta: `${l.colorName} · Size ${l.sizeLabel}`,
-          qty: l.qty,
-          image: l.image,
-          total: l.lineTotalPaise,
-        }));
+    : session.items.map((l) => ({
+        key: l.skuId,
+        name: l.productName,
+        meta: `${l.colorName} · Size ${l.sizeLabel}`,
+        qty: l.qty,
+        image: l.image,
+        total: l.totalPaise,
+      }));
 
   return (
     <div className={styles.summary}>
@@ -722,7 +733,7 @@ function OrderSummary({ session }: { session: CheckoutSessionDto }) {
       {q ? (
         <QuoteTotals quote={q} />
       ) : (
-        <EstimateTotals subtotal={cart?.totals.subtotalPaise ?? 0} />
+        <EstimateTotals subtotal={session.subtotalPaise} />
       )}
       {quote.error && !q ? <FormError message={errorMessage(quote.error)} /> : null}
       {q ? (

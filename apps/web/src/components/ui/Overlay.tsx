@@ -44,6 +44,15 @@ function useNativeDialog(open: boolean, onClose: () => void) {
     return undefined;
   }, [open]);
 
+  // Unmounting while open (e.g. navigating to a page with another layout) fires no `close` event,
+  // so release the scroll lock here or the next page can't scroll.
+  useEffect(
+    () => () => {
+      if (ref.current?.open) document.documentElement.style.overflow = '';
+    },
+    [],
+  );
+
   useEffect(() => {
     const el = ref.current;
     if (!el) return;

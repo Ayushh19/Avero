@@ -1,0 +1,4 @@
+ALTER TABLE "checkout_sessions" ADD COLUMN "buy_now_sku_id" uuid;--> statement-breakpoint
+ALTER TABLE "checkout_sessions" ADD COLUMN "buy_now_qty" integer;--> statement-breakpoint
+ALTER TABLE "checkout_sessions" ADD CONSTRAINT "checkout_sessions_buy_now_sku_id_skus_id_fk" FOREIGN KEY ("buy_now_sku_id") REFERENCES "public"."skus"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "checkout_sessions" ADD CONSTRAINT "checkout_sessions_buy_now_pair" CHECK (("checkout_sessions"."buy_now_sku_id" IS NULL AND "checkout_sessions"."buy_now_qty" IS NULL) OR ("checkout_sessions"."buy_now_sku_id" IS NOT NULL AND "checkout_sessions"."buy_now_qty" > 0));
