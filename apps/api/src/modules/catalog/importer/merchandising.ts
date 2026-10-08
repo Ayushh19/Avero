@@ -15,7 +15,7 @@ export const LAUNCH_MRP_MARKUP_BPS: Record<string, number> = {
 export const HOME_CONTENT = {
   hero: [
     { collection: 'new-arrivals', eyebrow: 'New collection', title: 'Modern comfort for your active life', body: 'Performance-minded. Everyday ready.' },
-    { collection: 'running', eyebrow: 'The running edit', title: 'Light on your feet, long on the road', body: 'Responsive cushioning for every kilometre.' },
+    { collection: 'running', eyebrow: 'The running edit', title: 'Light on your feet long on the road', body: 'Responsive cushioning for every kilometre.' },
     { collection: 'lifestyle', eyebrow: 'Lifestyle', title: 'Quiet design, made for the city', body: 'Clean lines in easy-to-wear tones.' },
   ],
   tiles: [
@@ -24,15 +24,36 @@ export const HOME_CONTENT = {
     { title: 'Men', to: '/c/men', tone: 'sand', from: { category: 'men', pick: 1 }, arch: true },
     { title: 'Women', to: '/c/women', tone: 'mauve', from: { category: 'women' } },
   ],
-  editorial: {
-    eyebrow: 'The AVERO way',
-    title: 'Sustainable comfort meets effortless style',
-    body: 'Thoughtfully designed footwear for people who move forward — breathable uppers, cushioned soles and a fit that feels right from the first step.',
-    to: '/collections/lifestyle',
-    cta: 'Explore the collection',
-    imageFrom: { product: 'womens-white-low-top-canvas-shoes', role: 'lifestyle', nth: 1 },
-    secondaryFrom: { product: 'mens-gray-low-top-sneakers', role: 'closeup', nth: 0 },
-  },
+  /** Rotates on the home page (one slide every few seconds). */
+  editorial: [
+    {
+      eyebrow: 'The AVERO way',
+      title: 'Sustainable comfort meets effortless style',
+      body: 'Thoughtfully designed footwear for people who move forward — breathable uppers, cushioned soles and a fit that feels right from the first step.',
+      to: '/collections/lifestyle',
+      cta: 'Explore the collection',
+      imageFrom: { product: 'womens-white-low-top-canvas-shoes', role: 'lifestyle', nth: 1 },
+      secondaryFrom: { product: 'mens-gray-low-top-sneakers', role: 'closeup', nth: 0 },
+    },
+    {
+      eyebrow: 'Made for motion',
+      title: 'Lightweight support for every stride',
+      body: 'Responsive foam and grippy outsoles that keep up with morning runs, gym sessions and everything in between.',
+      to: '/collections/running',
+      cta: 'Shop running',
+      imageFrom: { product: 'fluorescent-green-womens-running-shoes', role: 'action', nth: 0 },
+      secondaryFrom: { product: 'fluorescent-green-womens-running-shoes', role: 'closeup', nth: 0 },
+    },
+    {
+      eyebrow: 'City ready',
+      title: 'Everyday sneakers with a quiet edge',
+      body: 'Easy-to-wear colours and clean silhouettes that go from the commute to the weekend without missing a beat.',
+      to: '/collections/new-arrivals',
+      cta: 'Shop new arrivals',
+      imageFrom: { product: 'modern-blue-purple-sneakers', role: 'lifestyle', nth: 0 },
+      secondaryFrom: { product: 'womens-pink-training-shoes', role: 'closeup', nth: 0 },
+    },
+  ],
 } as const;
 
 export interface CollectionSeed {

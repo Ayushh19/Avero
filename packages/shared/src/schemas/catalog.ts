@@ -212,7 +212,8 @@ export interface CategoryNodeDto {
 export interface HomeDto {
   hero: { eyebrow: string; title: string; body: string; image: ImageDto | null; to: string }[];
   tiles: { title: string; to: string; tone: 'mist' | 'sage' | 'sand' | 'mauve'; image: ImageDto | null; arch: boolean }[];
-  editorial: { eyebrow: string; title: string; body: string; to: string; cta: string; image: ImageDto | null; secondaryImage: ImageDto | null } | null;
+  /** Editorial slides, shown as an auto-rotating carousel. */
+  editorial: { eyebrow: string; title: string; body: string; to: string; cta: string; image: ImageDto | null; secondaryImage: ImageDto | null }[];
   showcase: { featured: ListingItemDto[]; men: ListingItemDto[]; women: ListingItemDto[] };
 }
 

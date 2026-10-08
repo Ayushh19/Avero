@@ -533,6 +533,46 @@
   max-width: 320px;
   margin-top: var(--space-6);
 }
+/* Slides share one grid cell: the block sizes to the tallest and the active one sits on top. */
+.editorialStack {
+  display: grid;
+  overflow: hidden; /* the slow zoom never spills past the frame */
+}
+.editorialStack > * {
+  grid-area: 1 / 1;
+}
+.editorialCopy {
+  display: grid;
+  gap: var(--space-5);
+  align-content: end;
+}
+.editorialCopyHidden {
+  visibility: hidden;
+}
+/* Same motion as the hero images: crossfade, with the incoming one drifting from 106% to 100%. */
+.editorialLayer {
+  opacity: 0;
+  transform: scale(1.06);
+  transition:
+    opacity 1000ms var(--ease-out),
+    transform 0s linear 1000ms;
+}
+.editorialLayerActive {
+  position: relative;
+  z-index: 1;
+  opacity: 1;
+  transform: scale(1);
+  transition:
+    opacity 1000ms var(--ease-out),
+    transform calc(var(--hero-interval, 4500ms) + 1000ms) cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .editorialLayer,
+  .editorialLayerActive {
+    transform: none;
+    transition: opacity var(--dur) linear;
+  }
+}
 @media (max-width: 1023px) {
   .editorialSecondary {
     display: none;

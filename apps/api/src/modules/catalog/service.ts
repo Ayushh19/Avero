@@ -552,16 +552,17 @@ export async function homeContent(deps: CatalogDeps): Promise<HomeDto> {
     return { title: t.title, to: t.to, tone: t.tone, image: pick?.image ?? null, arch: 'arch' in t ? t.arch : false };
   });
 
-  const e = HOME_CONTENT.editorial;
-  const editorial = {
-    eyebrow: e.eyebrow,
-    title: e.title,
-    body: e.body,
-    to: e.to,
-    cta: e.cta,
-    image: await imageByRole(deps, e.imageFrom),
-    secondaryImage: await imageByRole(deps, e.secondaryFrom),
-  };
+  const editorial = await Promise.all(
+    HOME_CONTENT.editorial.map(async (e) => ({
+      eyebrow: e.eyebrow,
+      title: e.title,
+      body: e.body,
+      to: e.to,
+      cta: e.cta,
+      image: await imageByRole(deps, e.imageFrom),
+      secondaryImage: await imageByRole(deps, e.secondaryFrom),
+    })),
+  );
 
   const list = (filter: (i: IndexedItem) => boolean) =>
     snap.items.filter(filter).slice(0, 8).map((i) => toListingDto(i, snap, now));

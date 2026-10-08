@@ -19,7 +19,7 @@ Implementation lives in `apps/web/src/styles/tokens.css` (tokens), `apps/web/src
 
 - **Wordmark**: `AVERO` set in Manrope 800, tracking `0.04em`.
 - **The arch**: one tile per tile row uses an arched top (`--radius-arch`) — a signature shape echoing a shoe's heel counter. Use at most once per section.
-- **Numbered carousel index** (`01  02  03`) instead of dots for hero/editorial carousels.
+- **Numbered carousel index** (`01  02  03`) instead of dots for the hero carousel. The home editorial block rotates on its own every 4.5 s with the hero's motion but shows no index or arrows (pauses on hover/focus).
 - **Circular arrow button** as the editorial "read more" affordance.
 - **Eyebrow labels**: tiny uppercase, wide tracking, above headlines (`NEW COLLECTION`).
 

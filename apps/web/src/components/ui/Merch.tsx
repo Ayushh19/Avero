@@ -358,34 +358,100 @@ export function Hero({ slides, actions, interval = 4500 }: { slides: HeroSlide[]
 
 /* ---------- editorial ---------- */
 
-interface EditorialProps {
+export interface EditorialSlide {
   eyebrow?: string;
   title: string;
   body: string;
   cta: { to: string; label: string };
   image?: ImageDto | null;
   secondaryImage?: ImageDto | null;
-  reverse?: boolean;
 }
 
-export function EditorialSection({ eyebrow, title, body, cta, image, secondaryImage, reverse }: EditorialProps) {
+/**
+ * Editorial block that rotates through `slides` every `interval` ms, with the hero's motion (images
+ * crossfade with a slow zoom, text rises in) but no arrows or index. All slides stay mounted and
+ * share one grid cell, so the block keeps the height of its tallest slide and never jumps. Holds
+ * while hovered, focused or the tab is hidden; with reduced motion it stays on the first slide.
+ */
+export function EditorialSection({ slides, reverse, interval = 4500 }: { slides: EditorialSlide[]; reverse?: boolean; interval?: number }) {
+  const [index, setIndex] = useState(0);
+  const [autoplay] = useState(() => !prefersReducedMotion());
+  const [held, setHeld] = useState(false);
+  const [hidden, setHidden] = useState(false);
+  const count = slides.length;
+  const running = autoplay && count > 1 && !held && !hidden;
+
+  useEffect(() => {
+    const onVisibility = () => setHidden(document.visibilityState === 'hidden');
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+  }, []);
+
+  useEffect(() => {
+    if (!running) return;
+    const t = window.setTimeout(() => setIndex((i) => (i + 1) % count), interval);
+    return () => window.clearTimeout(t);
+  }, [running, index, count, interval]);
+
+  if (count === 0) return null;
+  const layer = (i: number) => cx(styles.editorialLayer, i === index && styles.editorialLayerActive);
+
   return (
-    <section className={cx(styles.editorial, reverse && styles.editorialReverse)}>
+    <section
+      className={cx(styles.editorial, reverse && styles.editorialReverse)}
+      style={{ '--hero-interval': `${interval}ms` } as CSSProperties}
+      onMouseEnter={() => setHeld(true)}
+      onMouseLeave={() => setHeld(false)}
+      onFocus={() => setHeld(true)}
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setHeld(false);
+      }}
+    >
       <div className={styles.editorialText}>
-        {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
-        <div className={styles.editorialHead}>
-          <h2 className={styles.editorialTitle}>{title}</h2>
-          <ArrowLink to={cta.to} label={cta.label} />
+        <div className={styles.editorialStack}>
+          {slides.map((s, i) => {
+            const active = i === index;
+            // Only the visible slide's text animates, so it rises in again each time it returns.
+            const rise = active && autoplay ? styles.heroRise : undefined;
+            return (
+              <div key={s.title} className={cx(styles.editorialCopy, !active && styles.editorialCopyHidden)} inert={!active} aria-hidden={!active}>
+                {s.eyebrow ? <p className={cx('eyebrow', rise)}>{s.eyebrow}</p> : null}
+                <div className={cx(styles.editorialHead, rise)}>
+                  <h2 className={styles.editorialTitle}>{s.title}</h2>
+                  <ArrowLink to={s.cta.to} label={s.cta.label} />
+                </div>
+                <p className={cx(styles.editorialBody, rise)}>{s.body}</p>
+                <div>
+                  <ButtonLink to={s.cta.to} variant="secondary">
+                    {s.cta.label}
+                  </ButtonLink>
+                </div>
+              </div>
+            );
+          })}
         </div>
-        <p className={styles.editorialBody}>{body}</p>
-        <div>
-          <ButtonLink to={cta.to} variant="secondary">
-            {cta.label}
-          </ButtonLink>
+        <div className={cx(styles.editorialStack, styles.editorialSecondary, styles['radius-lg'])}>
+          {slides.map((s, i) => (
+            <div key={s.title} className={layer(i)} aria-hidden={i !== index}>
+              <ProductMedia image={s.secondaryImage} alt="" ratio="4/5" tone="sand" sizes="320px" />
+            </div>
+          ))}
         </div>
-        <ProductMedia image={secondaryImage} alt="" ratio="4/5" tone="sand" sizes="320px" className={styles.editorialSecondary} />
       </div>
-      <ProductMedia image={image} ratio="4/5" tone="mauve" radius="xl" sizes="(min-width: 1024px) 55vw, 100vw" className={styles.editorialMain} />
+      <div className={cx(styles.editorialStack, styles['radius-xl'])}>
+        {slides.map((s, i) => (
+          <div key={s.title} className={layer(i)} aria-hidden={i !== index}>
+            <ProductMedia
+              image={s.image}
+              alt={i === index ? undefined : ''}
+              ratio="4/5"
+              tone="mauve"
+              radius="xl"
+              sizes="(min-width: 1024px) 55vw, 100vw"
+            />
+          </div>
+        ))}
+      </div>
     </section>
   );
 }

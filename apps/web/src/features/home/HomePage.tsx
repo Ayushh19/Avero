@@ -64,15 +64,10 @@ export function HomePage() {
           : [0, 1, 2, 3].map((i) => <Skeleton key={i} ratio="4/5" radius="lg" />)}
       </section>
 
-      {data?.editorial ? (
+      {data?.editorial.length ? (
         <div className="container section">
           <EditorialSection
-            eyebrow={data.editorial.eyebrow}
-            title={data.editorial.title}
-            body={data.editorial.body}
-            cta={{ to: data.editorial.to, label: data.editorial.cta }}
-            image={data.editorial.image}
-            secondaryImage={data.editorial.secondaryImage}
+            slides={data.editorial.map((e) => ({ ...e, cta: { to: e.to, label: e.cta } }))}
           />
         </div>
       ) : null}
